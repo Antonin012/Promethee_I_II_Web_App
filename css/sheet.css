@@ -1,0 +1,41 @@
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+th, td { 
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center; 
+}
+
+.header-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-weight {
+    width: 80px;
+    margin-bottom: 5px;
+}
+
+.input-param {
+    width: 40px;
+}
+
+.input-val {
+    width: 60px;
+}
+
+.params { 
+    display: none;
+    margin: 5px 0;
+}
+
+.params.visible {
+    display: block;
+}
+
