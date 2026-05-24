@@ -1,0 +1,8 @@
+# Maven
+target/
+
+# Compilation output
+WEB-INF/classes/**/*.class
+
+
+
