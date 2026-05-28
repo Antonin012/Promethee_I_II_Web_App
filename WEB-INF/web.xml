@@ -7,19 +7,7 @@
 
     <display-name>Promethee Web App</display-name>
 
-    <!-- Déclaration de la Servlet -->
-    <servlet>
-        <servlet-name>PrometheeServlet</servlet-name>
-        <servlet-class>controller.PrometheeServlet</servlet-class>
-    </servlet>
 
-    <!-- Mapping de la Servlet -->
-    <servlet-mapping>
-        <servlet-name>PrometheeServlet</servlet-name>
-        <url-pattern>/PrometheeServlet</url-pattern>
-    </servlet-mapping>
-
-    <!-- Fichier d'accueil -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

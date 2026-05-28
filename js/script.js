@@ -137,6 +137,20 @@ function removeCriterion(btn) {
 async function sendData() {
     const formData = new FormData(document.getElementById('prometheeForm'));
     const data = Object.fromEntries(formData.entries());
-
     console.log("Sended data :", data);
+
+    // Sending and receiving data in JSON format using POST method
+    var xhr = new XMLHttpRequest();
+    var url = "calculate"; // URL relative au contexte actuel
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var results = JSON.parse(xhr.responseText);
+            console.log("Results:", results);
+        }
+    };
+    xhr.send(JSON.stringify(data));
+
 }
+

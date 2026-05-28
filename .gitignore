@@ -3,6 +3,10 @@ target/
 
 # Compilation output
 WEB-INF/classes/**/*.class
+WEB-INF/classes/**/*.jar
 
-
-
+.idea/
+.vscode/
+.settings/
+.project
+.classpath

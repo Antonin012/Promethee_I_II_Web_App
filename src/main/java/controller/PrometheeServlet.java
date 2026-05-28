@@ -1,5 +1,7 @@
 package controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -10,69 +12,116 @@ import model.function.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 @WebServlet("/calculate")
 public class PrometheeServlet extends HttpServlet {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+        
         try {
+            // Lecture brute du corps de la requête
+            byte[] bytes = request.getInputStream().readAllBytes();
+            String body = new String(bytes, StandardCharsets.UTF_8);
+            if (body.trim().isEmpty()) {
+                System.out.println("Empty JSON");
+                response.getWriter().print("[]");
+                return;
+            }
 
-            ArrayList<Criterion> criteria = extractCriteria(request);
-            ArrayList<Alternative> alternatives = extractAlternatives(request, criteria);
+            JsonNode rootNode = objectMapper.readTree(body);
+            ArrayList<Criterion> criteria = extractCriteria(rootNode);
+            ArrayList<Alternative> alternatives = extractAlternatives(rootNode, criteria);
 
-            PrometheeCalcul engine = new PrometheeCalcul();
-            engine.calculate(alternatives, criteria);
+            if (alternatives.size() >= 2) {
+                PrometheeCalcul engine = new PrometheeCalcul();
+                engine.calculate(alternatives, criteria);
+                System.out.println("Calcul effectué avec succès.");
+            } else {
+                System.out.println("Calcul sauté : pas assez d'alternatives.");
+            }
 
-            String jsonResponse = buildJsonResponse(alternatives);
+            // Parse result to JSON
+            String jsonResponse = objectMapper.writeValueAsString(alternatives);
 
             PrintWriter out = response.getWriter();
             out.print(jsonResponse);
             out.flush();
 
         } catch (Exception e) {
+            System.out.println("Error Servlet : " + e.getMessage());
+            e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().print("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 
-    private ArrayList<Criterion> extractCriteria(HttpServletRequest request) {
+    private ArrayList<Criterion> extractCriteria(JsonNode node) {
         ArrayList<Criterion> list = new ArrayList<>();
-        int i = 1;
-        while (request.getParameter("critName_" + i) != null) {
-            String name = request.getParameter("critName_" + i);
-            double weight = Double.parseDouble(request.getParameter("weight_" + i));
-            boolean isMax = Boolean.parseBoolean(request.getParameter("isMax_" + i));
-            String type = request.getParameter("func_" + i);
+        // On récupère tous les indices de critères présents dans le JSON
+        java.util.Set<Integer> indices = new java.util.TreeSet<>();
+        node.fieldNames().forEachRemaining(name -> {
+            if (name.startsWith("critName_")) {
+                try {
+                    indices.add(Integer.parseInt(name.substring(9)));
+                } catch (NumberFormatException ignored) {}
+            }
+        });
+
+        for (int i : indices) {
+            String name = node.get("critName_" + i).asText();
+            double weight = getDoubleSafe(node, "weight_" + i);
+            boolean isMax = node.get("isMax_" + i).asBoolean() || "true".equals(node.get("isMax_" + i).asText());
+            String type = node.get("func_" + i).asText();
             
-            double p = parseDoubleSafe(request.getParameter("p_" + i));
-            double q = parseDoubleSafe(request.getParameter("q_" + i));
-            double s = parseDoubleSafe(request.getParameter("s_" + i));
+            double p = getDoubleSafe(node, "p_" + i);
+            double q = getDoubleSafe(node, "q_" + i);
+            double s = getDoubleSafe(node, "s_" + i);
 
             PreferenceFunction func = createFunction(type, p, q, s);
             list.add(new Criterion(name, weight, isMax, func));
-            i++;
         }
         return list;
     }
 
-    private ArrayList<Alternative> extractAlternatives(HttpServletRequest request, ArrayList<Criterion> criteria) {
+    private ArrayList<Alternative> extractAlternatives(JsonNode node, ArrayList<Criterion> criteria) {
         ArrayList<Alternative> list = new ArrayList<>();
-        int i = 1;
-        while (request.getParameter("altName_" + i) != null) {
-            String name = request.getParameter("altName_" + i);
+        java.util.Set<Integer> indices = new java.util.TreeSet<>();
+        node.fieldNames().forEachRemaining(name -> {
+            if (name.startsWith("altName_")) {
+                try {
+                    indices.add(Integer.parseInt(name.substring(8)));
+                } catch (NumberFormatException ignored) {}
+            }
+        });
+
+        java.util.ArrayList<Integer> critIndices = new java.util.ArrayList<>();
+        node.fieldNames().forEachRemaining(name -> {
+            if (name.startsWith("critName_")) {
+                try {
+                    critIndices.add(Integer.parseInt(name.substring(9)));
+                } catch (NumberFormatException ignored) {}
+            }
+        });
+        java.util.Collections.sort(critIndices);
+
+        for (int i : indices) {
+            String name = node.get("altName_" + i).asText();
             Alternative alt = new Alternative(String.valueOf(i), name);
             
             for (int j = 0; j < criteria.size(); j++) {
-                double val = Double.parseDouble(request.getParameter("val_" + i + "_" + (j + 1)));
+                int critIndex = critIndices.get(j);
+                String key = "val_" + i + "_" + critIndex;
+                double val = getDoubleSafe(node, key);
                 alt.addValue(criteria.get(j), val);
             }
             list.add(alt);
-            i++;
         }
         return list;
     }
@@ -89,29 +138,21 @@ public class PrometheeServlet extends HttpServlet {
         }
     }
 
-    private double parseDoubleSafe(String val) {
-        if (val == null || val.isEmpty()) return 0.0;
-        try {
-            return Double.parseDouble(val);
-        } catch (NumberFormatException e) {
-            return 0.0;
+    private double getDoubleSafe(JsonNode node, String field) {
+        if (node.has(field) && !node.get(field).isNull()) {
+            JsonNode fieldNode = node.get(field);
+            if (fieldNode.isNumber()) {
+                return fieldNode.asDouble();
+            } else {
+                String text = fieldNode.asText();
+                if (text == null || text.trim().isEmpty()) return 0.0;
+                try {
+                    return Double.parseDouble(text.replace(',', '.'));
+                } catch (NumberFormatException e) {
+                    return 0.0;
+                }
+            }
         }
-    }
-
-    private String buildJsonResponse(ArrayList<Alternative> alternatives) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (int i = 0; i < alternatives.size(); i++) {
-            Alternative a = alternatives.get(i);
-            sb.append("{");
-            sb.append("\"name\":\"").append(a.getName()).append("\",");
-            sb.append("\"phiPlus\":").append(a.getPhiPlus()).append(",");
-            sb.append("\"phiMinus\":").append(a.getPhiMinus()).append(",");
-            sb.append("\"phiNet\":").append(a.getPhiNet());
-            sb.append("}");
-            if (i < alternatives.size() - 1) sb.append(",");
-        }
-        sb.append("]");
-        return sb.toString();
+        return 0.0;
     }
 }
