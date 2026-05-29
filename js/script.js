@@ -6,7 +6,24 @@ let debounceTimer;
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('prometheeForm');
     if (form) {
-        form.addEventListener('input', () => {
+        form.addEventListener('input', (e) => {
+            // Sync Alternative Name to Results Table (Row and Column)
+            if (e.target.name && e.target.name.startsWith("altName_")) {
+                const id = parseInt(e.target.name.split("_")[1]);
+                const newName = e.target.value || `Alt ${id}`;
+                
+                // Update Row Header
+                const resRows = document.querySelectorAll("#resBody tr");
+                if (resRows[id - 1]) {
+                    resRows[id - 1].cells[0].innerText = newName;
+                }
+                
+                // Update Column Header
+                const resHeaderCells = document.querySelectorAll("#resHeader th");
+                if (resHeaderCells[id]) {
+                    resHeaderCells[id].innerText = newName;
+                }
+            }
             debouncedSendData();
         });
     }
@@ -106,6 +123,47 @@ function addAlternative() {
     
     newRow.innerHTML = tds;
     tbody.appendChild(newRow);
+
+    // Sync Results Table (Square Matrix)
+    // Add Column to Header
+    const resHeader = document.getElementById("resHeader");
+    const newResTh = document.createElement("th");
+    newResTh.className = "res-alt-col";
+    newResTh.innerText = `Alt ${rowCount}`;
+    const phiPlusTh = resHeader.cells[resHeader.cells.length - 3];
+    resHeader.insertBefore(newResTh, phiPlusTh);
+
+    // Add Cell to existing rows in resBody
+    const resRows = document.querySelectorAll("#resBody tr");
+    resRows.forEach((r, idx) => {
+        const newTd = document.createElement("td");
+        newTd.className = "res-pair-val";
+        newTd.innerText = "-";
+        const phiPlusTd = r.cells[r.cells.length - 3];
+        r.insertBefore(newTd, phiPlusTd);
+    });
+
+    // Add new Row to resBody
+    const resBody = document.getElementById("resBody");
+    const newResRow = document.createElement("tr");
+    let resTds = `<td class="res-alt-row-name">Alt ${rowCount}</td>`;
+    for (let j = 1; j <= rowCount; j++) {
+        resTds += `<td class="res-pair-val">${(j === rowCount) ? "\\" : "-"}</td>`;
+    }
+    resTds += `<td class="res-phi-plus">-</td>
+               <td class="res-phi-net">-</td>
+               <td class="res-rank"><strong>-</strong></td>`;
+    newResRow.innerHTML = resTds;
+    resBody.appendChild(newResRow);
+
+    // Add Cell to resFooter
+    const resFooter = document.getElementById("resFooter");
+    const newFootTd = document.createElement("td");
+    newFootTd.className = "res-phi-minus";
+    newFootTd.innerText = "-";
+    // Insert before the colspan=3 cell
+    resFooter.insertBefore(newFootTd, resFooter.lastElementChild);
+
     updateButtons();
 }
 
@@ -135,7 +193,28 @@ function removeAlternative(btn) {
     const row = btn.closest("tr");
     if (row !== row.parentNode.lastElementChild) return;
 
+    const rowIndex = Array.from(row.parentNode.children).indexOf(row);
     row.remove();
+    
+    // Sync Results Table (Square Matrix)
+    // Remove column from header
+    const resHeader = document.getElementById("resHeader");
+    const colIndex = rowIndex + 1; // +1 because cells[0] is title
+    if (resHeader.cells[colIndex]) resHeader.cells[colIndex].remove();
+
+    // Remove column from each row in body
+    const resRows = document.querySelectorAll("#resBody tr");
+    resRows.forEach(r => {
+        if (r.cells[colIndex]) r.cells[colIndex].remove();
+    });
+
+    // Remove the row itself
+    if (resRows[rowIndex]) resRows[rowIndex].remove();
+
+    // Remove cell from footer
+    const resFooter = document.getElementById("resFooter");
+    if (resFooter.cells[colIndex]) resFooter.cells[colIndex].remove();
+
     rowCount--;
     updateButtons();
     sendData();
@@ -152,11 +231,23 @@ function removeCriterion(btn) {
     const index = Array.from(headerRow.children).indexOf(th);
     
     th.remove();
+
+    // Sync Results Table Header
+    const resHeaderRow = document.querySelector("#resultsTable thead tr");
+    if (resHeaderRow.cells[index]) {
+        resHeaderRow.cells[index].remove();
+    }
     
     const rows = document.querySelectorAll("tbody tr");
-    rows.forEach(row => {
+    const resRows = document.querySelectorAll("#resultsTable tbody tr");
+
+    rows.forEach((row, rowIndex) => {
         if (row.children[index]) {
             row.children[index].remove();
+        }
+        // Sync Results Table Body
+        if (resRows[rowIndex] && resRows[rowIndex].cells[index]) {
+            resRows[rowIndex].cells[index].remove();
         }
     });
 
@@ -184,9 +275,53 @@ async function sendData() {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var results = JSON.parse(xhr.responseText);
             console.log("Results:", results);
+            displayResults(results);
         }
     };
     xhr.send(JSON.stringify(data));
+}
 
+function displayResults(results) {
+    const resRows = document.querySelectorAll("#resBody tr");
+    if (!resRows.length) return;
+
+    if (!results || !Array.isArray(results) || results.length === 0) {
+        return;
+    }
+
+    const sorted = [...results].sort((a, b) => b.phiNet - a.phiNet);
+
+    const resHeaderCells = document.querySelectorAll("#resHeader th");
+    const resFooterCells = document.querySelectorAll("#resFooter td.res-phi-minus");
+
+    results.forEach((item, index) => {
+        const row = resRows[index];
+        if (!row) return;
+
+        // Sync Alternative Name from Input (Row and Column Header)
+        const altInput = document.querySelector(`input[name="altName_${index + 1}"]`);
+        const altName = altInput ? altInput.value || `Alt ${index + 1}` : item.name;
+        
+        row.cells[0].innerText = altName;
+        if (resHeaderCells[index + 1]) {
+            resHeaderCells[index + 1].innerText = altName;
+        }
+
+        // Update Flows (at the end of the row)
+        const phiPlusCell = row.cells[row.cells.length - 3];
+        const phiNetCell = row.cells[row.cells.length - 2];
+        const rankCell = row.cells[row.cells.length - 1];
+
+        phiPlusCell.innerText = Number(item.phiPlus).toFixed(4);
+        phiNetCell.innerText = Number(item.phiNet).toFixed(4);
+        
+        const rank = sorted.findIndex(s => s.phiNet === item.phiNet) + 1;
+        rankCell.innerHTML = `<strong>${rank}</strong>`;
+
+        // Update Phi Minus in the Footer
+        if (resFooterCells[index]) {
+            resFooterCells[index].innerText = Number(item.phiMinus).toFixed(4);
+        }
+    });
 }
 

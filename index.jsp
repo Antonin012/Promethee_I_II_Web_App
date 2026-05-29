@@ -73,7 +73,44 @@
         </table>
     </form>
 
-    <div id="resultsContainer"></div>
+    <div id="resultsContainer">
+        <h2>Final Results Matrix</h2>
+        <table id="resultsTable">
+            <thead>
+                <tr id="resHeader">
+                    <th>Alternatives</th>
+                    <% for (int j = 1; j <= 3; j++) { %>
+                    <th class="res-alt-col">Alt <%=j%></th>
+                    <% } %>
+                    <th>Φ+</th>
+                    <th>Φ (Net)</th>
+                    <th>Rank</th>
+                </tr>
+            </thead>
+            <tbody id="resBody">
+                <% for (int i = 1; i <= 3; i++) { %>
+                <tr>
+                    <td class="res-alt-row-name">Alt <%=i%></td>
+                    <% for (int j = 1; j <= 3; j++) { %>
+                    <td class="res-pair-val"><%= (i == j) ? "\\" : "-" %></td>
+                    <% } %>
+                    <td class="res-phi-plus">-</td>
+                    <td class="res-phi-net">-</td>
+                    <td class="res-rank"><strong>-</strong></td>
+                </tr>
+                <% } %>
+            </tbody>
+            <tfoot>
+                <tr id="resFooter">
+                    <th>Φ-</th>
+                    <% for (int j = 1; j <= 3; j++) { %>
+                    <td class="res-phi-minus">-</td>
+                    <% } %>
+                    <td colspan="3" style="background: #eee;"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
 </body>
 </html>
