@@ -10,7 +10,30 @@ document.addEventListener('DOMContentLoaded', () => {
             debouncedSendData();
         });
     }
+    updateButtons();
 });
+
+function updateButtons() {
+    // For alternatives (rows)
+    const altBtns = document.querySelectorAll("tbody .btn-del");
+    altBtns.forEach((btn, idx) => {
+        if (altBtns.length > 2 && idx === altBtns.length - 1) {
+            btn.style.display = "inline-block";
+        } else {
+            btn.style.display = "none";
+        }
+    });
+
+    // For criteria (columns)
+    const critBtns = document.querySelectorAll("thead .btn-del");
+    critBtns.forEach((btn, idx) => {
+        if (critBtns.length > 2 && idx === critBtns.length - 1) {
+            btn.style.display = "inline-block";
+        } else {
+            btn.style.display = "none";
+        }
+    });
+}
 
 function debouncedSendData() {
     clearTimeout(debounceTimer);
@@ -29,7 +52,7 @@ function addCriterion() {
     newTh.innerHTML = `
         <div class="header-flex">
             <input type="text" name="critName_${colCount}" placeholder="Nom Critère ${colCount}">
-            <button type="button" onclick="removeCriterion(this)" class="btn-del">-</button>
+            <button type="button" onclick="removeCriterion(this)" class="btn-del" style="display:none;">-</button>
         </div>
         <input type="number" name="weight_${colCount}" step="0.01" placeholder="Poids" class="input-weight"><br>
         <select name="func_${colCount}" onchange="showParams(this, ${colCount})">
@@ -60,8 +83,9 @@ function addCriterion() {
     const footerRow = document.getElementById("add-alt-row");
     if (footerRow) {
         const emptyTd = document.createElement("td");
-        footerRow.insertBefore(emptyTd, footerRow.lastElementChild,rowCount);
+        footerRow.insertBefore(emptyTd, footerRow.lastElementChild);
     }
+    updateButtons();
 }
 
 // Add row
@@ -71,7 +95,7 @@ function addAlternative() {
     const newRow = document.createElement("tr");
 
     let tds = `<td>
-        <button type="button" onclick="removeAlternative(this)" class="btn-del">-</button>
+        <button type="button" onclick="removeAlternative(this)" class="btn-del" style="display:none;">-</button>
         <input type="text" name="altName_${rowCount}" placeholder="Alternative ${rowCount}">
         </td>
         `;
@@ -82,6 +106,7 @@ function addAlternative() {
     
     newRow.innerHTML = tds;
     tbody.appendChild(newRow);
+    updateButtons();
 }
 
 // Set visibility of each type
@@ -106,15 +131,25 @@ function showParams(select, id) {
 
 // Remove Row (Alternative)
 function removeAlternative(btn) {
-    btn.closest("tr").remove();
-    sendData();
+    if (rowCount <= 2) return;
+    const row = btn.closest("tr");
+    if (row !== row.parentNode.lastElementChild) return;
+
+    row.remove();
     rowCount--;
+    updateButtons();
+    sendData();
 }
 
 // Remove Column (Criterion)
 function removeCriterion(btn) {
+    if (colCount <= 2) return;
     const th = btn.closest("th");
-    const index = Array.from(th.parentNode.children).indexOf(th);
+    const headerRow = th.parentNode;
+    const criteriaThs = headerRow.querySelectorAll("th:not(.add-col-th)");
+    if (th !== criteriaThs[criteriaThs.length - 1]) return;
+
+    const index = Array.from(headerRow.children).indexOf(th);
     
     th.remove();
     
@@ -130,8 +165,9 @@ function removeCriterion(btn) {
         footerRow.children[index].remove();
     }
 
-    sendData(); 
     colCount--;
+    updateButtons();
+    sendData(); 
 }
 
 async function sendData() {

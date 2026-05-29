@@ -3,7 +3,6 @@ target/
 
 # Compilation output
 WEB-INF/classes/**/*.class
-WEB-INF/classes/**/*.jar
 WEB-INF/lib/*.jar
 
 .idea/

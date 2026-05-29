@@ -17,7 +17,7 @@
                     <th>
                         <div class="header-flex">
                             <input type="text" name="critName_<%=j%>" placeholder="Criteria Name <%=j%>">
-                            <button type="button" onclick="removeCriterion(this)" class="btn-del">-</button>
+                            <button type="button" onclick="removeCriterion(this)" class="btn-del" style="<%= (j < 3) ? "display:none;" : "" %>">-</button>
                         </div>
                         <input type="number" name="weight_<%=j%>" step="0.01" placeholder="Weight" class="input-weight"><br>
                         
@@ -49,7 +49,7 @@
                 <% for (int i = 1; i <= 3; i++) { %>
                 <tr>
                     <td>
-                        <button type="button" onclick="removeAlternative(this)" class="btn-del">-</button>
+                        <button type="button" onclick="removeAlternative(this)" class="btn-del" style="<%= (i < 3) ? "display:none;" : "" %>">-</button>
                         <input type="text" name="altName_<%=i%>" placeholder="Alternative <%=i%>">
                     </td>
                     <% for (int j = 1; j <= 3; j++) { %>
