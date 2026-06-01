@@ -39,3 +39,66 @@ th, td {
     display: block;
 }
 
+.btn-action {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.btn-action:hover {
+    background-color: #45a049;
+}
+
+.btn-reset {
+    background-color: #f44336 !important;
+}
+
+.btn-reset:hover {
+    background-color: #da190b !important;
+}
+
+.btn-del {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.btn-add-col, .btn-add-row {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.actions-bar {
+    margin: 20px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.res-footer-empty {
+    background: #eee;
+}
+
+.hidden {
+    display: none;
+}
+
+.warning-msg {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+}
+

@@ -17,7 +17,7 @@
                     <th>
                         <div class="header-flex">
                             <input type="text" name="critName_<%=j%>" placeholder="Criteria Name <%=j%>">
-                            <button type="button" onclick="removeCriterion(this)" class="btn-del" style="<%= (j < 3) ? "display:none;" : "" %>">-</button>
+                            <button type="button" onclick="removeCriterion(this)" class="btn-del <%= (j < 3) ? "hidden" : "" %>">-</button>
                         </div>
                         <input type="number" name="weight_<%=j%>" step="0.01" placeholder="Weight" class="input-weight"><br>
                         
@@ -49,7 +49,7 @@
                 <% for (int i = 1; i <= 3; i++) { %>
                 <tr>
                     <td>
-                        <button type="button" onclick="removeAlternative(this)" class="btn-del" style="<%= (i < 3) ? "display:none;" : "" %>">-</button>
+                        <button type="button" onclick="removeAlternative(this)" class="btn-del <%= (i < 3) ? "hidden" : "" %>">-</button>
                         <input type="text" name="altName_<%=i%>" placeholder="Alternative <%=i%>">
                     </td>
                     <% for (int j = 1; j <= 3; j++) { %>
@@ -72,6 +72,19 @@
             </tfoot>
         </table>
     </form>
+
+    <div class="actions-bar">
+        <button type="button" onclick="resetData()" class="btn-action btn-reset">Reset</button>
+        <div>
+            <button type="button" onclick="exportData()" class="btn-action">Export JSON</button>
+            <button type="button" onclick="triggerImport()" class="btn-action">Import JSON</button>
+            <input type="file" id="importFile" class="hidden" onchange="importData(event)">
+        </div>
+    </div>
+
+    <div id="weightWarning" class="warning-msg hidden">
+        Warning : The sum of the weights must be equal to 1 !
+    </div>
 
     <div id="resultsContainer">
         <h2>Final Results Matrix</h2>
@@ -106,7 +119,7 @@
                     <% for (int j = 1; j <= 3; j++) { %>
                     <td class="res-phi-minus">-</td>
                     <% } %>
-                    <td colspan="3" style="background: #eee;"></td>
+                    <td colspan="3" class="res-footer-empty"></td>
                 </tr>
             </tfoot>
         </table>

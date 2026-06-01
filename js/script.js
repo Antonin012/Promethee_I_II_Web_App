@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     updateButtons();
+    loadFromLocalStorage();
 });
 
 function updateButtons() {
-    // For alternatives (rows)
     const altBtns = document.querySelectorAll("tbody .btn-del");
     altBtns.forEach((btn, idx) => {
         if (altBtns.length > 2 && idx === altBtns.length - 1) {
@@ -41,7 +41,6 @@ function updateButtons() {
         }
     });
 
-    // For criteria (columns)
     const critBtns = document.querySelectorAll("thead .btn-del");
     critBtns.forEach((btn, idx) => {
         if (critBtns.length > 2 && idx === critBtns.length - 1) {
@@ -55,6 +54,7 @@ function updateButtons() {
 function debouncedSendData() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
+        saveToLocalStorage();
         sendData();
     }, 500);
 }
@@ -102,6 +102,7 @@ function addCriterion() {
         const emptyTd = document.createElement("td");
         footerRow.insertBefore(emptyTd, footerRow.lastElementChild);
     }
+    
     updateButtons();
 }
 
@@ -125,7 +126,6 @@ function addAlternative() {
     tbody.appendChild(newRow);
 
     // Sync Results Table (Square Matrix)
-    // Add Column to Header
     const resHeader = document.getElementById("resHeader");
     const newResTh = document.createElement("th");
     newResTh.className = "res-alt-col";
@@ -133,9 +133,8 @@ function addAlternative() {
     const phiPlusTh = resHeader.cells[resHeader.cells.length - 3];
     resHeader.insertBefore(newResTh, phiPlusTh);
 
-    // Add Cell to existing rows in resBody
     const resRows = document.querySelectorAll("#resBody tr");
-    resRows.forEach((r, idx) => {
+    resRows.forEach((r) => {
         const newTd = document.createElement("td");
         newTd.className = "res-pair-val";
         newTd.innerText = "-";
@@ -143,7 +142,6 @@ function addAlternative() {
         r.insertBefore(newTd, phiPlusTd);
     });
 
-    // Add new Row to resBody
     const resBody = document.getElementById("resBody");
     const newResRow = document.createElement("tr");
     let resTds = `<td class="res-alt-row-name">Alt ${rowCount}</td>`;
@@ -156,12 +154,10 @@ function addAlternative() {
     newResRow.innerHTML = resTds;
     resBody.appendChild(newResRow);
 
-    // Add Cell to resFooter
     const resFooter = document.getElementById("resFooter");
     const newFootTd = document.createElement("td");
     newFootTd.className = "res-phi-minus";
     newFootTd.innerText = "-";
-    // Insert before the colspan=3 cell
     resFooter.insertBefore(newFootTd, resFooter.lastElementChild);
 
     updateButtons();
@@ -173,6 +169,8 @@ function showParams(select, id) {
     const pDiv = document.getElementById('p_div_' + id);
     const qDiv = document.getElementById('q_div_' + id);
     const sDiv = document.getElementById('s_div_' + id);
+
+    if (!pDiv || !qDiv || !sDiv) return;
 
     pDiv.classList.remove('visible');
     qDiv.classList.remove('visible');
@@ -197,27 +195,22 @@ function removeAlternative(btn) {
     row.remove();
     
     // Sync Results Table (Square Matrix)
-    // Remove column from header
     const resHeader = document.getElementById("resHeader");
-    const colIndex = rowIndex + 1; // +1 because cells[0] is title
+    const colIndex = rowIndex + 1; 
     if (resHeader.cells[colIndex]) resHeader.cells[colIndex].remove();
 
-    // Remove column from each row in body
     const resRows = document.querySelectorAll("#resBody tr");
     resRows.forEach(r => {
         if (r.cells[colIndex]) r.cells[colIndex].remove();
     });
 
-    // Remove the row itself
     if (resRows[rowIndex]) resRows[rowIndex].remove();
 
-    // Remove cell from footer
     const resFooter = document.getElementById("resFooter");
     if (resFooter.cells[colIndex]) resFooter.cells[colIndex].remove();
 
     rowCount--;
     updateButtons();
-    sendData();
 }
 
 // Remove Column (Criterion)
@@ -229,7 +222,6 @@ function removeCriterion(btn) {
     if (th !== criteriaThs[criteriaThs.length - 1]) return;
 
     const index = Array.from(headerRow.children).indexOf(th);
-    
     th.remove();
 
     const rows = document.querySelectorAll("#prometheeForm tbody tr");
@@ -246,23 +238,40 @@ function removeCriterion(btn) {
 
     colCount--;
     updateButtons();
-    sendData(); 
 }
 
 async function sendData() {
-    const formData = new FormData(document.getElementById('prometheeForm'));
+    const form = document.getElementById('prometheeForm');
+    if (!form) return;
+    
+    // Check weights
+    const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-    console.log("Sended data :", data);
+    
+    let sumWeights = 0;
+    for (let j = 1; j <= 100; j++) { // Use a reasonable limit
+        const w = data[`weight_${j}`];
+        if (w !== undefined) {
+            sumWeights += parseFloat(w || 0);
+        }
+    }
+    
+    const warningDiv = document.getElementById('weightWarning');
+    // Allow a small margin for floating point precision
+    if (Math.abs(sumWeights - 1.0) > 0.001) {
+        if (warningDiv) warningDiv.classList.remove('hidden');
+        return; // Block calculation
+    } else {
+        if (warningDiv) warningDiv.classList.add('hidden');
+    }
 
-    // Sending and receiving data in JSON format using POST method
     var xhr = new XMLHttpRequest();
-    var url = "calculate"; // URL relative au contexte actuel
+    var url = "calculate"; 
     xhr.open("POST", url, true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var results = JSON.parse(xhr.responseText);
-            console.log("Results:", results);
             displayResults(results);
         }
     };
@@ -280,7 +289,6 @@ function displayResults(results) {
     const alternatives = results.alternatives;
     const matrix = results.matrix;
 
-    // Calculer les rangs basés sur Phi Net (décroissant)
     const sorted = [...alternatives].sort((a, b) => b.phiNet - a.phiNet);
 
     const resHeaderCells = document.querySelectorAll("#resHeader th");
@@ -290,7 +298,6 @@ function displayResults(results) {
         const row = resRows[index];
         if (!row) return;
 
-        // Sync Alternative Name from Input (Row and Column Header)
         const altInput = document.querySelector(`input[name="altName_${index + 1}"]`);
         const altName = altInput ? altInput.value || `Alt ${index + 1}` : item.name;
         
@@ -299,10 +306,9 @@ function displayResults(results) {
             resHeaderCells[index + 1].innerText = altName;
         }
 
-        // Fill Pairwise Comparison Cells (from the matrix)
         if (matrix && matrix[index]) {
             for (let j = 0; j < alternatives.length; j++) {
-                const cell = row.cells[j + 1]; // +1 because cells[0] is title
+                const cell = row.cells[j + 1]; 
                 if (cell && cell.classList.contains("res-pair-val")) {
                     if (index === j) {
                         cell.innerText = "\\";
@@ -313,7 +319,6 @@ function displayResults(results) {
             }
         }
 
-        // Update Flows (at the end of the row)
         const phiPlusCell = row.cells[row.cells.length - 3];
         const phiNetCell = row.cells[row.cells.length - 2];
         const rankCell = row.cells[row.cells.length - 1];
@@ -324,10 +329,115 @@ function displayResults(results) {
         const rank = sorted.findIndex(s => s.phiNet === item.phiNet) + 1;
         rankCell.innerHTML = `<strong>${rank}</strong>`;
 
-        // Update Phi Minus in the Footer
         if (resFooterCells[index]) {
             resFooterCells[index].innerText = Number(item.phiMinus).toFixed(4);
         }
     });
 }
 
+function saveToLocalStorage() {
+    const form = document.getElementById('prometheeForm');
+    if (!form) return;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    const state = {
+        colCount: colCount,
+        rowCount: rowCount,
+        data: data
+    };
+    localStorage.setItem('promethee_state', JSON.stringify(state));
+}
+
+function loadFromLocalStorage() {
+    const saved = localStorage.getItem('promethee_state');
+    if (saved) {
+        try {
+            const state = JSON.parse(saved);
+            applyData(state);
+        } catch (e) {
+            console.error("Error loading from localStorage", e);
+        }
+    }
+}
+
+function applyData(imported) {
+    if (!imported || !imported.data) return;
+
+    while (colCount > 2) {
+        const btns = document.querySelectorAll("thead .btn-del");
+        if (btns.length > 0) removeCriterion(btns[btns.length-1]);
+        else break;
+    }
+    while (rowCount > 2) {
+        const btns = document.querySelectorAll("tbody .btn-del");
+        if (btns.length > 0) removeAlternative(btns[btns.length-1]);
+        else break;
+    }
+
+    while (colCount < imported.colCount) addCriterion();
+    while (rowCount < imported.rowCount) addAlternative();
+    
+    const form = document.getElementById('prometheeForm');
+    if (!form) return;
+    for (const [key, value] of Object.entries(imported.data)) {
+        const input = form.elements[key];
+        if (input) {
+            input.value = value;
+            if (input.tagName === 'SELECT' && key.startsWith('func_')) {
+                const id = key.split('_')[1];
+                showParams(input, id);
+            }
+        }
+    }
+    sendData();
+}
+
+function resetData() {
+    if (confirm("Do you really want to reset all the data ?")) {
+        localStorage.removeItem('promethee_state');
+        location.reload();
+    }
+}
+
+function exportData() {
+    const form = document.getElementById('prometheeForm');
+    if (!form) return;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    const exportObj = {
+        colCount: colCount,
+        rowCount: rowCount,
+        data: data
+    };
+    
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `promethee_data_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function triggerImport() {
+    const input = document.getElementById('importFile');
+    if (input) input.click();
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const imported = JSON.parse(e.target.result);
+            applyData(imported);
+            alert("Imported data succed !");
+        } catch (err) {
+            alert("Error importation : " + err.message);
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; 
+}

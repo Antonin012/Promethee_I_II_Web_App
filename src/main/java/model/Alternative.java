@@ -1,5 +1,6 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ public class Alternative {
     private String id;
     private String name;
     
+    @JsonIgnore
     private Map<Criterion, Double> values;
     private double phiPlus;
     private double phiMinus;
