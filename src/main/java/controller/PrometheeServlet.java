@@ -39,16 +39,20 @@ public class PrometheeServlet extends HttpServlet {
             ArrayList<Criterion> criteria = extractCriteria(rootNode);
             ArrayList<Alternative> alternatives = extractAlternatives(rootNode, criteria);
 
+            double[][] matrix = new double[0][0];
             if (alternatives.size() >= 2) {
                 PrometheeCalcul engine = new PrometheeCalcul();
-                engine.calculate(alternatives, criteria);
-                System.out.println("Calcul effectué avec succès.");
+                matrix = engine.calculate(alternatives, criteria);
             } else {
-                System.out.println("Calcul sauté : pas assez d'alternatives.");
+                System.out.print("Error: Alternative size must be > 2");
             }
 
-            // Parse result to JSON
-            String jsonResponse = objectMapper.writeValueAsString(alternatives);
+            // Create a wrapper object for the response
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("alternatives", alternatives);
+            result.put("matrix", matrix);
+
+            String jsonResponse = objectMapper.writeValueAsString(result);
 
             PrintWriter out = response.getWriter();
             out.print(jsonResponse);

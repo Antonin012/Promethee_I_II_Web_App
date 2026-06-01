@@ -60,11 +60,12 @@ public class PrometheeCalcul {
         }
     }
 
-    public void calculate(List<Alternative> alternatives, List<Criterion> criteria) {
+    public double[][] calculate(List<Alternative> alternatives, List<Criterion> criteria) {
         if (alternatives == null || criteria == null || alternatives.size() < 2) {
-            return;
+            return new double[0][0];
         }
         double[][] matrix = computeGlobalPreferenceMatrix(alternatives, criteria);
         computeFlows(alternatives, matrix);
+        return matrix;
     }
 }

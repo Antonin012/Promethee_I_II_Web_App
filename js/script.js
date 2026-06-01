@@ -62,7 +62,7 @@ function debouncedSendData() {
 // Add column
 function addCriterion() {
     colCount++;
-    const headerRow = document.querySelector("thead tr");
+    const headerRow = document.querySelector("#prometheeForm thead tr");
     const addColTh = headerRow.querySelector(".add-col-th");
     const newTh = document.createElement("th");
     
@@ -90,7 +90,7 @@ function addCriterion() {
     `;
     headerRow.insertBefore(newTh, addColTh);
 
-    const rows = document.querySelectorAll("tbody tr");
+    const rows = document.querySelectorAll("#prometheeForm tbody tr");
     rows.forEach((row, index) => {
         const newTd = document.createElement("td");
         newTd.innerHTML = `<input type="number" name="val_${index + 1}_${colCount}" step="0.1" class="input-val">`;
@@ -108,7 +108,7 @@ function addCriterion() {
 // Add row
 function addAlternative() {
     rowCount++;
-    const tbody = document.querySelector("tbody");
+    const tbody = document.querySelector("#prometheeForm tbody");
     const newRow = document.createElement("tr");
 
     let tds = `<td>
@@ -232,22 +232,10 @@ function removeCriterion(btn) {
     
     th.remove();
 
-    // Sync Results Table Header
-    const resHeaderRow = document.querySelector("#resultsTable thead tr");
-    if (resHeaderRow.cells[index]) {
-        resHeaderRow.cells[index].remove();
-    }
-    
-    const rows = document.querySelectorAll("tbody tr");
-    const resRows = document.querySelectorAll("#resultsTable tbody tr");
-
-    rows.forEach((row, rowIndex) => {
+    const rows = document.querySelectorAll("#prometheeForm tbody tr");
+    rows.forEach(row => {
         if (row.children[index]) {
             row.children[index].remove();
-        }
-        // Sync Results Table Body
-        if (resRows[rowIndex] && resRows[rowIndex].cells[index]) {
-            resRows[rowIndex].cells[index].remove();
         }
     });
 
@@ -285,16 +273,20 @@ function displayResults(results) {
     const resRows = document.querySelectorAll("#resBody tr");
     if (!resRows.length) return;
 
-    if (!results || !Array.isArray(results) || results.length === 0) {
+    if (!results || !results.alternatives || !Array.isArray(results.alternatives) || results.alternatives.length === 0) {
         return;
     }
 
-    const sorted = [...results].sort((a, b) => b.phiNet - a.phiNet);
+    const alternatives = results.alternatives;
+    const matrix = results.matrix;
+
+    // Calculer les rangs basés sur Phi Net (décroissant)
+    const sorted = [...alternatives].sort((a, b) => b.phiNet - a.phiNet);
 
     const resHeaderCells = document.querySelectorAll("#resHeader th");
     const resFooterCells = document.querySelectorAll("#resFooter td.res-phi-minus");
 
-    results.forEach((item, index) => {
+    alternatives.forEach((item, index) => {
         const row = resRows[index];
         if (!row) return;
 
@@ -305,6 +297,20 @@ function displayResults(results) {
         row.cells[0].innerText = altName;
         if (resHeaderCells[index + 1]) {
             resHeaderCells[index + 1].innerText = altName;
+        }
+
+        // Fill Pairwise Comparison Cells (from the matrix)
+        if (matrix && matrix[index]) {
+            for (let j = 0; j < alternatives.length; j++) {
+                const cell = row.cells[j + 1]; // +1 because cells[0] is title
+                if (cell && cell.classList.contains("res-pair-val")) {
+                    if (index === j) {
+                        cell.innerText = "\\";
+                    } else {
+                        cell.innerText = Number(matrix[index][j]).toFixed(4);
+                    }
+                }
+            }
         }
 
         // Update Flows (at the end of the row)
