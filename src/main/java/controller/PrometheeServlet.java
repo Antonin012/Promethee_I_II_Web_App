@@ -44,7 +44,9 @@ public class PrometheeServlet extends HttpServlet {
                 PrometheeCalcul engine = new PrometheeCalcul();
                 matrix = engine.calculate(alternatives, criteria);
             } else {
-                System.out.print("Error: Alternative size must be > 2");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().print("{\"error\": \"At least two alternatives are required for calculation.\"}");
+                return;
             }
 
             // Create a wrapper object for the response
@@ -79,17 +81,34 @@ public class PrometheeServlet extends HttpServlet {
         });
 
         for (int i : indices) {
-            String name = node.get("critName_" + i).asText();
+            String nameField = "critName_" + i;
+            String name = node.has(nameField) ? node.get(nameField).asText() : "Criterion " + i;
+            
             double weight = getDoubleSafe(node, "weight_" + i);
-            boolean isMax = node.get("isMax_" + i).asBoolean() || "true".equals(node.get("isMax_" + i).asText());
-            String type = node.get("func_" + i).asText();
+            
+            boolean isMax = false;
+            if (node.has("isMax_" + i)) {
+                JsonNode maxNode = node.get("isMax_" + i);
+                isMax = maxNode.asBoolean() || "true".equals(maxNode.asText());
+            }
+
+            String type = "type1";
+            if (node.has("func_" + i)) {
+                type = node.get("func_" + i).asText();
+            }
             
             double p = getDoubleSafe(node, "p_" + i);
             double q = getDoubleSafe(node, "q_" + i);
             double s = getDoubleSafe(node, "s_" + i);
 
-            PreferenceFunction func = createFunction(type, p, q, s);
-            list.add(new Criterion(name, weight, isMax, func));
+            try {
+                PreferenceFunction func = createFunction(type, p, q, s);
+                list.add(new Criterion(name, weight, isMax, func));
+            } catch (IllegalArgumentException e) {
+                // If parameters are invalid for the chosen type, we fallback to UsualFunction
+                // or we could rethrow to let the user know. Let's rethrow with more context.
+                throw new IllegalArgumentException("Criterion '" + name + "': " + e.getMessage());
+            }
         }
         return list;
     }
@@ -116,7 +135,8 @@ public class PrometheeServlet extends HttpServlet {
         java.util.Collections.sort(critIndices);
 
         for (int i : indices) {
-            String name = node.get("altName_" + i).asText();
+            String nameField = "altName_" + i;
+            String name = node.has(nameField) ? node.get(nameField).asText() : "Alternative " + i;
             Alternative alt = new Alternative(String.valueOf(i), name);
             
             for (int j = 0; j < criteria.size(); j++) {

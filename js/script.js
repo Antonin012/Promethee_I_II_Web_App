@@ -250,15 +250,17 @@ async function sendData() {
     
     let sumWeights = 0;
     for (let j = 1; j <= 100; j++) { // Use a reasonable limit
-        const w = data[`weight_${j}`];
-        if (w !== undefined) {
+        let w = data[`weight_${j}`];
+        if (w !== undefined && w !== null) {
+            // Support both dot and comma as decimal separator
+            w = String(w).replace(',', '.');
             sumWeights += parseFloat(w || 0);
         }
     }
     
     const warningDiv = document.getElementById('weightWarning');
     // Allow a small margin for floating point precision
-    if (Math.abs(sumWeights - 1.0) > 0.001) {
+    if (isNaN(sumWeights) || Math.abs(sumWeights - 1.0) > 0.001) {
         if (warningDiv) warningDiv.classList.remove('hidden');
         return; // Block calculation
     } else {
@@ -270,9 +272,23 @@ async function sendData() {
     xhr.open("POST", url, true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var results = JSON.parse(xhr.responseText);
-            displayResults(results);
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var results = JSON.parse(xhr.responseText);
+                    displayResults(results);
+                } catch (e) {
+                    console.error("Error parsing results:", e);
+                }
+            } else {
+                console.error("Server error:", xhr.status, xhr.responseText);
+                try {
+                    const err = JSON.parse(xhr.responseText);
+                    if (err.error) alert("Error during calculation: " + err.error);
+                } catch (e) {
+                    alert("An unexpected error occurred during calculation.");
+                }
+            }
         }
     };
     xhr.send(JSON.stringify(data));

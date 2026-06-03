@@ -23,17 +23,17 @@ public class PrometheeCalcul {
             for (int j = 0; j < n; j++) {
                 if (i == j) {
                     matrix[i][j] = 0.0;
-                }
-                
-                double weightedSum = 0;
-                for (Criterion c : listC) {
-                    double valI = listA.get(i).getValue(c);
-                    double valJ = listA.get(j).getValue(c);
+                } else {
+                    double weightedSum = 0;
+                    for (Criterion c : listC) {
+                        double valI = listA.get(i).getValue(c);
+                        double valJ = listA.get(j).getValue(c);
+                        
+                        weightedSum += c.getWeight() * c.getPreference(c.isMaximize() ? (valI - valJ) : (valJ - valI));
+                    }
                     
-                    weightedSum += c.getWeight() * c.getPreference(c.isMaximize() ? (valI - valJ) : (valJ - valI));
+                    matrix[i][j] = (totalWeight > 0) ? (weightedSum / totalWeight) : 0.0;
                 }
-                
-                matrix[i][j] = (totalWeight > 0) ? (weightedSum / totalWeight) : 0.0;
             }
         }
         return matrix;
