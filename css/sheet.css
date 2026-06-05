@@ -102,3 +102,51 @@ th, td {
     font-weight: bold;
 }
 
+.pref-better { background-color: #d4edda; color: #155724; }
+.pref-worse { background-color: #f8d7da; color: #721c24; }
+.pref-equal { background-color: #e2e3e5; color: #383d41; }
+.comp-td { padding: 10px; border: 1px solid #ccc; }
+
+.section-container {
+    margin-bottom: 30px; 
+    padding: 20px; 
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    background: #fafafa;
+}
+
+.comp-selectors {
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.select-comp {
+    padding: 5px;
+    margin: 0 15px 0 5px;
+    border-radius: 4px;
+}
+
+#comparisonTable {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+#comparisonTable th, #comparisonTable td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.relation-result {
+    margin-top: 15px; 
+    font-size: 1.2em; 
+    font-weight: bold;
+    padding: 10px;
+    border-top: 2px solid #eee;
+}
+
+.status-better { background-color: #d4edda; color: #155724; font-weight: bold; }
+.status-worse { background-color: #f8d7da; color: #721c24; font-weight: bold; }
+.status-equal { background-color: #e2e3e5; color: #383d41; }
+

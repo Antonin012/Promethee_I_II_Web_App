@@ -22,19 +22,19 @@
                         <input type="number" name="weight_<%=j%>" step="0.01" placeholder="Weight" class="input-weight"><br>
                         
                         <select name="func_<%=j%>" onchange="showParams(this, <%=j%>)">
-                            <option value="type1">Type 1: Usuel</option>
+                            <option value="type1">Type 1: Usual</option>
                             <option value="type2">Type 2: U-Shape</option>
                             <option value="type3">Type 3: V-Shape</option>
                             <option value="type4">Type 4: Level</option>
                             <option value="type5">Type 5: V-Shape Indiff</option>
-                            <option value="type6">Type 6: Gaussien</option>
+                            <option value="type6">Type 6: Gaussian</option>
                         </select>
     
                         <div id="q_div_<%=j%>" class="params">q: <input type="number" name="q_<%=j%>" step="0.1" class="input-param"></div>
                         <div id="p_div_<%=j%>" class="params">p: <input type="number" name="p_<%=j%>" step="0.1" class="input-param"></div>
                         <div id="s_div_<%=j%>" class="params">s: <input type="number" name="s_<%=j%>" step="0.1" class="input-param"></div>
     
-                        <select name="isMax_<%=j%>">
+                        <select name="isMax_<%=j%>" onchange="debouncedSendData()">
                             <option value="true">Higher +</option>
                             <option value="false">Lower -</option>
                         </select>
@@ -83,11 +83,35 @@
     </div>
 
     <div id="weightWarning" class="warning-msg hidden">
-        Warning : The sum of the weights must be equal to 1 !
+        Warning : The sum of the weights must be equal to 1.0 to perform the calculation.
+    </div>
+
+    <div id="comparisonSection" class="section-container">
+        <h2>Pairwise Comparison (PROMETHEE I Analysis)</h2>
+        <div class="comp-selectors">
+            Alternative A: <select id="compA" class="select-comp" onchange="updatePairwiseComparison()"></select>
+            Alternative B: <select id="compB" class="select-comp" onchange="updatePairwiseComparison()"></select>
+        </div>
+        <table id="comparisonTable">
+            <thead>
+                <tr>
+                    <th>Criterion</th>
+                    <th>Value A</th>
+                    <th>Value B</th>
+                    <th>P(A, B)</th>
+                    <th>P(B, A)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="comparisonBody">
+                <!-- Filled by JS -->
+            </tbody>
+        </table>
+        <div id="prometheeIRelation" class="relation-result"></div>
     </div>
 
     <div id="resultsContainer">
-        <h2>Final Results Matrix</h2>
+        <h2>Final Results Matrix (PROMETHEE II)</h2>
         <table id="resultsTable">
             <thead>
                 <tr id="resHeader">
