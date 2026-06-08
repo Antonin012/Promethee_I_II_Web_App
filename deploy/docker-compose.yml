@@ -1,0 +1,20 @@
+services:
+  promethee-app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: promethee_container
+    ports:
+      - "8080:8080"
+    restart: always
+  
+  database_postgres:    
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: ${postgres_password}
+      POSTGRES_USER: ${postgres_user}
+      POSTGRES_DB: ${db_name}
+    volumes:
+      - ${HOME}/postgres-data/:/var/lib/postgresql/data    
