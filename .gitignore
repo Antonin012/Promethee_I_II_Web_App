@@ -10,3 +10,5 @@ WEB-INF/lib/*.jar
 .settings/
 .project
 .classpath
+
+.env

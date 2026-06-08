@@ -26,7 +26,6 @@ public class PrometheeServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         
         try {
-            // Lecture brute du corps de la requête
             byte[] bytes = request.getInputStream().readAllBytes();
             String body = new String(bytes, StandardCharsets.UTF_8);
             if (body.trim().isEmpty()) {
@@ -70,7 +69,6 @@ public class PrometheeServlet extends HttpServlet {
 
     private ArrayList<Criterion> extractCriteria(JsonNode node) {
         ArrayList<Criterion> list = new ArrayList<>();
-        // On récupère tous les indices de critères présents dans le JSON
         java.util.Set<Integer> indices = new java.util.TreeSet<>();
         node.fieldNames().forEachRemaining(name -> {
             if (name.startsWith("critName_")) {
