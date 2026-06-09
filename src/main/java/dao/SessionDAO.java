@@ -21,13 +21,24 @@ import model.function.UsualFunction;
 import model.function.VShapeFunction;
 import model.function.VShapeIndifferences;
 
+/**
+ * Data Access Object for handling Session entities.
+ * Provides methods to save, load, and retrieve decision-making sessions from the PostgreSQL database.
+ * 
+ * @author Developer
+ */
 public class SessionDAO {
 
-    // Ideally, connection parameters should come from a properties file or environment variables.
     private static final String URL = "jdbc:postgresql://database_postgres:5432/" + System.getenv("POSTGRES_DB");
     private static final String USER = System.getenv("POSTGRES_USER");
     private static final String PASSWORD = System.getenv("POSTGRES_PASSWORD");
 
+    /**
+     * Establishes and returns a connection to the PostgreSQL database.
+     * 
+     * @return a Connection object
+     * @throws SQLException if a database access error occurs or the driver is not found
+     */
     private Connection getConnection() throws SQLException {
         try {
             Class.forName("org.postgresql.Driver");
@@ -37,6 +48,13 @@ public class SessionDAO {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
+    /**
+     * Saves a complete session, including its criteria, alternatives, and evaluations, 
+     * into the database within a single transaction.
+     * 
+     * @param session the Session object containing all data to persist
+     * @throws SQLException if a database access error occurs or the transaction fails
+     */
     public void saveSession(Session session) throws SQLException {
         String insertSessionSql = "INSERT INTO session (id, name, created_at) VALUES (?, ?, ?)";
         String insertCriterionSql = "INSERT INTO criterion (id, session_id, name, weight, is_maximize, function_type, param_p, param_q, param_s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -130,6 +148,13 @@ public class SessionDAO {
         }
     }
 
+    /**
+     * Retrieves all saved sessions from the database, sorted by creation date descending.
+     * Note: This method only loads the session metadata (ID, name, createdAt), not the full details.
+     * 
+     * @return a list of Session objects containing basic information
+     * @throws SQLException if a database access error occurs
+     */
     public List<Session> getAllSessions() throws SQLException {
         List<Session> sessions = new ArrayList<>();
         String sql = "SELECT id, name, created_at FROM session ORDER BY created_at DESC";
@@ -143,6 +168,14 @@ public class SessionDAO {
         return sessions;
     }
 
+    /**
+     * Loads a complete session, including its criteria, alternatives, and evaluations, 
+     * from the database given its ID.
+     * 
+     * @param sessionId the unique identifier of the session to load
+     * @return the fully reconstructed Session object, or null if no session was found
+     * @throws SQLException if a database access error occurs
+     */
     public Session loadSession(String sessionId) throws SQLException {
         Session session = null;
         String selectSession = "SELECT * FROM session WHERE id = ?";

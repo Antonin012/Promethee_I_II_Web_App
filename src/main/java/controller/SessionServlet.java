@@ -24,12 +24,30 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * Servlet handling REST API requests for managing decision-making sessions.
+ * Supports GET for retrieving a list of sessions or details of a specific session,
+ * and POST for saving a newly calculated session.
+ * 
+ * @author Developer
+ */
 @WebServlet("/api/sessions")
 public class SessionServlet extends HttpServlet {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SessionDAO sessionDAO = new SessionDAO();
 
+    /**
+     * Handles GET requests. 
+     * If the 'id' parameter is absent, retrieves a list of all saved sessions.
+     * If the 'id' parameter is present, retrieves the complete details of the specified session
+     * and maps it to the frontend JSON structure.
+     * 
+     * @param request the HttpServletRequest containing query parameters
+     * @param response the HttpServletResponse used to write the JSON response
+     * @throws ServletException if an error occurs during servlet processing
+     * @throws IOException if an I/O error occurs during request/response handling
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json");
@@ -40,9 +58,6 @@ public class SessionServlet extends HttpServlet {
 
         try {
             if (id == null || id.isEmpty()) {
-                // List all sessions (In a real app, SessionDAO should have a getAllSessions method)
-                // Since we didn't add it yet, I will add it via a SQL query directly here or add it to DAO.
-                // Let's assume we update DAO to have getAllSessions.
                 List<Session> sessions = sessionDAO.getAllSessions();
                 ArrayNode array = objectMapper.createArrayNode();
                 for (Session s : sessions) {
@@ -54,7 +69,6 @@ public class SessionServlet extends HttpServlet {
                 }
                 out.print(array.toString());
             } else {
-                // Load specific session and convert to flat JSON for frontend applyData
                 Session session = sessionDAO.loadSession(id);
                 if (session == null) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -118,6 +132,16 @@ public class SessionServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Handles POST requests. 
+     * Parses the incoming JSON configuration, calculates PROMETHEE outranking flows,
+     * creates a Session object, and delegates saving it to the database via SessionDAO.
+     * 
+     * @param request the HttpServletRequest containing the JSON payload
+     * @param response the HttpServletResponse used to write the JSON response status
+     * @throws ServletException if an error occurs during servlet processing
+     * @throws IOException if an I/O error occurs during request/response handling
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json");
@@ -171,6 +195,12 @@ public class SessionServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Extracts a list of Criterion objects from a given JSON node.
+     * 
+     * @param node the JsonNode containing the criteria configuration
+     * @return an ArrayList of Criterion objects
+     */
     private ArrayList<Criterion> extractCriteria(JsonNode node) {
         ArrayList<Criterion> list = new ArrayList<>();
         Set<Integer> indices = new TreeSet<>();
@@ -201,6 +231,13 @@ public class SessionServlet extends HttpServlet {
         return list;
     }
 
+    /**
+     * Extracts a list of Alternative objects from a given JSON node, applying evaluations.
+     * 
+     * @param node the JsonNode containing the alternatives
+     * @param criteria the list of corresponding Criteria
+     * @return an ArrayList of initialized Alternative objects
+     */
     private ArrayList<Alternative> extractAlternatives(JsonNode node, ArrayList<Criterion> criteria) {
         ArrayList<Alternative> list = new ArrayList<>();
         Set<Integer> indices = new TreeSet<>();
@@ -234,6 +271,15 @@ public class SessionServlet extends HttpServlet {
         return list;
     }
 
+    /**
+     * Instantiates a PreferenceFunction based on its type string and threshold parameters.
+     * 
+     * @param type the preference function type string
+     * @param p the strict preference threshold
+     * @param q the indifference threshold
+     * @param s the standard deviation-like threshold
+     * @return the instantiated PreferenceFunction
+     */
     private PreferenceFunction createFunction(String type, double p, double q, double s) {
         switch (type) {
             case "type1": return new UsualFunction();
@@ -246,6 +292,13 @@ public class SessionServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Safely retrieves a double value from a JsonNode field.
+     * 
+     * @param node the JsonNode containing the target field
+     * @param field the name of the field to read
+     * @return the extracted double value, or 0.0 if invalid
+     */
     private double getDoubleSafe(JsonNode node, String field) {
         if (node.has(field) && !node.get(field).isNull()) {
             JsonNode fieldNode = node.get(field);

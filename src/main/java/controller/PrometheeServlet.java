@@ -15,11 +15,28 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
+/**
+ * Servlet handling POST requests for calculating PROMETHEE outranking flows and matrices.
+ * It parses the incoming JSON data to extract criteria and alternatives,
+ * computes the PROMETHEE matrices, and returns the results in JSON format.
+ * 
+ * @author Developer
+ */
 @WebServlet("/calculate")
 public class PrometheeServlet extends HttpServlet {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * Handles POST requests for PROMETHEE calculation.
+     * Parses the JSON body to retrieve criteria and alternative definitions, performs the calculation,
+     * and writes the resulting matrix and updated alternatives back as JSON.
+     * 
+     * @param request the HttpServletRequest containing the JSON payload
+     * @param response the HttpServletResponse where the JSON results are sent
+     * @throws ServletException if an error occurs during servlet processing
+     * @throws IOException if an I/O error occurs during request/response handling
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json");
@@ -67,6 +84,12 @@ public class PrometheeServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Extracts a list of Criterion objects from a given JSON node.
+     * 
+     * @param node the root JsonNode containing the criteria configuration
+     * @return an ArrayList of Criterion objects extracted from the JSON
+     */
     private ArrayList<Criterion> extractCriteria(JsonNode node) {
         ArrayList<Criterion> list = new ArrayList<>();
         java.util.Set<Integer> indices = new java.util.TreeSet<>();
@@ -103,14 +126,19 @@ public class PrometheeServlet extends HttpServlet {
                 PreferenceFunction func = createFunction(type, p, q, s);
                 list.add(new Criterion(name, weight, isMax, func));
             } catch (IllegalArgumentException e) {
-                // If parameters are invalid for the chosen type, we fallback to UsualFunction
-                // or we could rethrow to let the user know. Let's rethrow with more context.
                 throw new IllegalArgumentException("Criterion '" + name + "': " + e.getMessage());
             }
         }
         return list;
     }
 
+    /**
+     * Extracts a list of Alternative objects from a given JSON node, applying evaluations based on provided criteria.
+     * 
+     * @param node the root JsonNode containing the alternatives and their evaluations
+     * @param criteria the list of available Criteria to map the evaluations to
+     * @return an ArrayList of Alternative objects fully initialized with their evaluations
+     */
     private ArrayList<Alternative> extractAlternatives(JsonNode node, ArrayList<Criterion> criteria) {
         ArrayList<Alternative> list = new ArrayList<>();
         java.util.Set<Integer> indices = new java.util.TreeSet<>();
@@ -148,6 +176,15 @@ public class PrometheeServlet extends HttpServlet {
         return list;
     }
 
+    /**
+     * Instantiates a PreferenceFunction based on its string type identifier and optional threshold parameters.
+     * 
+     * @param type a string identifier for the preference function type (e.g., "type1")
+     * @param p the strict preference threshold
+     * @param q the indifference threshold
+     * @param s the standard deviation-like threshold for the Gaussian function
+     * @return an instantiated PreferenceFunction object corresponding to the given type
+     */
     private PreferenceFunction createFunction(String type, double p, double q, double s) {
         switch (type) {
             case "type1": return new UsualFunction();
@@ -160,6 +197,13 @@ public class PrometheeServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Safely retrieves a double value from a JsonNode field, parsing string approximations if necessary.
+     * 
+     * @param node the JsonNode containing the target field
+     * @param field the name of the field to read
+     * @return the extracted double value, or 0.0 if the field is missing or invalid
+     */
     private double getDoubleSafe(JsonNode node, String field) {
         if (node.has(field) && !node.get(field).isNull()) {
             JsonNode fieldNode = node.get(field);
