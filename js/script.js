@@ -2,23 +2,33 @@ let colCount = 3;
 let rowCount = 3;
 let debounceTimer;
 let lastResults = null;
+let sidebarOpen = false;
+
+function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+    const sidebar = document.getElementById("mySidebar");
+    const mainContent = document.getElementById("main-content");
+    if (sidebarOpen) {
+        sidebar.style.width = "250px";
+        mainContent.style.marginLeft = "250px";
+    } else {
+        sidebar.style.width = "0";
+        mainContent.style.marginLeft = "0";
+    }
+}
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('prometheeForm');
     if (form) {
         form.addEventListener('input', (e) => {
-            // Sync Alternative Name
             if (e.target.name && e.target.name.startsWith("altName_")) {
                 const id = parseInt(e.target.name.split("_")[1]);
                 const newName = e.target.value || `Alt ${id}`;
-                
-                // Update Results Table Headers
                 const resRows = document.querySelectorAll("#resBody tr");
                 if (resRows[id - 1]) resRows[id - 1].cells[0].innerText = newName;
                 const resHeaderCells = document.querySelectorAll("#resHeader th");
                 if (resHeaderCells[id]) resHeaderCells[id].innerText = newName;
-
                 updateDropdowns();
             }
             debouncedSendData();
@@ -27,7 +37,113 @@ document.addEventListener('DOMContentLoaded', () => {
     updateButtons();
     loadFromLocalStorage();
     updateDropdowns();
+    fetchSessionsList(); // Load available sessions from DB
 });
+
+function fetchSessionsList() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "api/sessions", true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var sessions = JSON.parse(xhr.responseText);
+                var selector = document.getElementById("sessionSelector");
+                if (selector) {
+                    selector.innerHTML = '<option value="">-- Select a saved session --</option>';
+                    sessions.forEach(s => {
+                        var opt = document.createElement('option');
+                        opt.value = s.id;
+                        var date = new Date(s.createdAt).toLocaleString();
+                        opt.text = s.name + " (" + date + ")";
+                        selector.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error("Error parsing sessions list:", e);
+            }
+        }
+    };
+    xhr.send();
+}
+
+function loadSessionFromDB() {
+    var selector = document.getElementById("sessionSelector");
+    var id = selector.value;
+    if (!id) return;
+    
+    if (sidebarOpen) toggleSidebar();
+    
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "api/sessions?id=" + id, true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var sessionData = JSON.parse(xhr.responseText);
+                    applyData(sessionData);
+                    document.getElementById("sessionNameInput").value = selector.options[selector.selectedIndex].text.split(" (")[0];
+                    alert("Session loaded successfully!");
+                } catch (e) {
+                    alert("Error parsing session data.");
+                }
+            } else {
+                alert("Failed to load session.");
+            }
+        }
+    };
+    xhr.send();
+}
+
+function saveToDatabase() {
+    var sessionName = document.getElementById("sessionNameInput").value.trim();
+    if (!sessionName) {
+        alert("Please enter a Session Name before saving.");
+        return;
+    }
+    
+    const form = document.getElementById('prometheeForm');
+    if (!form) return;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Check weights
+    let sumWeights = 0;
+    for (let j = 1; j <= 100; j++) {
+        let w = data[`weight_${j}`];
+        if (w !== undefined) sumWeights += parseFloat(String(w).replace(',', '.') || 0);
+    }
+    if (isNaN(sumWeights) || Math.abs(sumWeights - 1.0) > 0.001) {
+        alert("Cannot save: The sum of the weights must be equal to 1.0.");
+        return;
+    }
+
+    const exportObj = {
+        sessionName: sessionName,
+        data: data
+    };
+    
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "api/sessions", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                alert("Session saved successfully!");
+                fetchSessionsList(); // Refresh the list
+            } else {
+                alert("Failed to save session. Server returned: " + xhr.responseText);
+            }
+        }
+    };
+    xhr.send(JSON.stringify(exportObj));
+}
+
+function createNewSession() {
+    if (confirm("Create a new calculation? Unsaved changes will be lost.")) {
+        localStorage.removeItem('promethee_state');
+        window.location.href = window.location.pathname + "?reset=" + new Date().getTime();
+    }
+}
 
 function updateButtons() {
     const altBtns = document.querySelectorAll("tbody .btn-del");
@@ -401,6 +517,10 @@ function loadFromLocalStorage() {
             const state = JSON.parse(saved);
             applyData(state);
         } catch (e) { console.error("Error loading", e); }
+    } else {
+        // If no state exists (e.g. after a reset), make sure the form is completely empty.
+        const form = document.getElementById('prometheeForm');
+        if (form) form.reset();
     }
 }
 
@@ -425,7 +545,7 @@ function applyData(imported) {
 function resetData() {
     if (confirm("Do you really want to reset all data?")) {
         localStorage.removeItem('promethee_state');
-        location.reload();
+        window.location.href = window.location.pathname + "?reset=" + new Date().getTime();
     }
 }
 

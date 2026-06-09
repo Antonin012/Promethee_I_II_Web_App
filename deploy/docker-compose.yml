@@ -7,6 +7,10 @@ services:
     ports:
       - "8080:8080"
     restart: always
+    environment:
+      POSTGRES_DB: ${db_name}
+      POSTGRES_USER: ${postgres_user}
+      POSTGRES_PASSWORD: ${postgres_password}
   
   database_postgres:    
     image: postgres:latest
@@ -18,4 +22,5 @@ services:
       POSTGRES_USER: ${postgres_user}
       POSTGRES_DB: ${db_name}
     volumes:
-      - ${HOME}/postgres-data/:/var/lib/postgresql/data    
+      - ${HOME}/postgres-data/:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql    

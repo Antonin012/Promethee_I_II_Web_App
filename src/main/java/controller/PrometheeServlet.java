@@ -135,7 +135,7 @@ public class PrometheeServlet extends HttpServlet {
         for (int i : indices) {
             String nameField = "altName_" + i;
             String name = node.has(nameField) ? node.get(nameField).asText() : "Alternative " + i;
-            Alternative alt = new Alternative(String.valueOf(i), name);
+            Alternative alt = new Alternative(java.util.UUID.randomUUID().toString(), name);
             
             for (int j = 0; j < criteria.size(); j++) {
                 int critIndex = critIndices.get(j);

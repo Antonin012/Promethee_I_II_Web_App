@@ -8,7 +8,24 @@
 </head>
 <body>
 
-    <form id="prometheeForm">
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="toggleSidebar()">&times;</a>
+        <h2>Sessions</h2>
+        <div class="sidebar-content">
+            <label for="sessionSelector" class="sidebar-label">Load Calculation:</label>
+            <select id="sessionSelector" class="sidebar-select" onchange="loadSessionFromDB()">
+                <option value="">-- Select a saved session --</option>
+            </select>
+            <button type="button" onclick="createNewSession()" class="btn-action btn-new">New Calculation</button>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div class="top-bar">
+            <button class="openbtn" onclick="toggleSidebar()">&#9776; Sessions Menu</button>
+        </div>
+
+        <form id="prometheeForm">
         <table>
             <thead>
                 <tr>
@@ -75,7 +92,9 @@
 
     <div class="actions-bar">
         <button type="button" onclick="resetData()" class="btn-action btn-reset">Reset</button>
-        <div>
+        <div class="actions-right">
+            <input type="text" id="sessionNameInput" placeholder="Session Name" class="input-session-name">
+            <button type="button" onclick="saveToDatabase()" class="btn-action btn-save">Save to Database</button>
             <button type="button" onclick="exportData()" class="btn-action">Export JSON</button>
             <button type="button" onclick="triggerImport()" class="btn-action">Import JSON</button>
             <input type="file" id="importFile" class="hidden" onchange="importData(event)">
@@ -148,6 +167,8 @@
             </tfoot>
         </table>
     </div>
+
+    </div> <!-- End main-content -->
 
 </body>
 </html>
