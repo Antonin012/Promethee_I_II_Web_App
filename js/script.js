@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update comparison dropdowns
                 updateDropdowns();
             }
+            // Update PROMETHEE I table instantly
+            updatePairwiseComparison();
             // Trigger calculation after a short delay
             debouncedSendData();
         });
@@ -347,6 +349,8 @@ function showParams(select, id) {
     qDiv.classList.toggle('visible', ['type2', 'type4', 'type5'].includes(type));
     sDiv.classList.toggle('visible', type === 'type6');
     
+    // Update PROMETHEE I table instantly
+    updatePairwiseComparison();
     // Automatically trigger calculation after changing function type
     debouncedSendData();
 }
@@ -548,14 +552,29 @@ function updateDropdowns() {
  */
 function calculatePref(d, type, p, q, s) {
     if (d <= 0) return 0;
+    
+    // Ensure p, q, s are valid numbers to avoid NaN or Infinity
+    p = parseFloat(p) || 0;
+    q = parseFloat(q) || 0;
+    s = parseFloat(s) || 0;
+
     switch (type) {
-        case 'type1': return 1;
-        case 'type2': return d > q ? 1 : 0;
-        case 'type3': return d > p ? 1 : d / p;
-        case 'type4': return d > p ? 1 : (d > q ? 0.5 : 0);
-        case 'type5': return d > p ? 1 : (d > q ? (d - q) / (p - q) : 0);
-        case 'type6': return 1 - Math.exp(-Math.pow(d, 2) / (2 * Math.pow(s, 2)));
-        default: return 0;
+        case 'type1': // Usual
+            return 1;
+        case 'type2': // U-Shape
+            return d > q ? 1 : 0;
+        case 'type3': // V-Shape
+            return p > 0 ? (d > p ? 1 : d / p) : (d > 0 ? 1 : 0);
+        case 'type4': // Level
+            return d > p ? 1 : (d > q ? 0.5 : 0);
+        case 'type5': // V-Shape Indiff
+            if (p <= q) return d > p ? 1 : 0; // Avoid division by zero
+            return d > p ? 1 : (d > q ? (d - q) / (p - q) : 0);
+        case 'type6': // Gaussian
+            if (s <= 0) return d > 0 ? 1 : 0;
+            return 1 - Math.exp(-Math.pow(d, 2) / (2 * Math.pow(s, 2)));
+        default:
+            return 0;
     }
 }
 
@@ -564,26 +583,36 @@ function calculatePref(d, type, p, q, s) {
  * criterion by criterion for the two currently selected alternatives.
  */
 function updatePairwiseComparison() {
-    const idA = document.getElementById('compA').value;
-    const idB = document.getElementById('compB').value;
+    const selA = document.getElementById('compA');
+    const selB = document.getElementById('compB');
     const tbody = document.getElementById('comparisonBody');
     const relationDiv = document.getElementById('prometheeIRelation');
-    if (!tbody || !idA || !idB) return;
+    
+    if (!selA || !selB || !tbody) return;
+    
+    const idA = selA.value;
+    const idB = selB.value;
+    if (!idA || !idB) return;
 
     tbody.innerHTML = '';
     const form = document.getElementById('prometheeForm');
     const data = Object.fromEntries(new FormData(form).entries());
 
+    console.log("Updating Pairwise Comparison for Alt " + idA + " vs Alt " + idB);
+
     // Iterate through all criteria to calculate frontend preference details
     for (let j = 1; j <= colCount; j++) {
-        const name = data[`critName_${j}`] || `Criterion ${j}`;
-        const valA = parseFloat(data[`val_${idA}_${j}`] || 0);
-        const valB = parseFloat(data[`val_${idB}_${j}`] || 0);
+        const nameInput = document.querySelector(`input[name="critName_${j}"]`);
+        const name = (nameInput ? nameInput.value : "") || `Criterion ${j}`;
+        
+        // Get alternative values and criteria parameters from form data
+        const valA = parseFloat(String(data[`val_${idA}_${j}`] || "0").replace(',', '.')) || 0;
+        const valB = parseFloat(String(data[`val_${idB}_${j}`] || "0").replace(',', '.')) || 0;
         const isMax = data[`isMax_${j}`] === "true";
         const type = data[`func_${j}`];
-        const p = parseFloat(data[`p_${j}`] || 0);
-        const q = parseFloat(data[`q_${j}`] || 0);
-        const s = parseFloat(data[`s_${j}`] || 0);
+        const p = parseFloat(String(data[`p_${j}`] || "0").replace(',', '.')) || 0;
+        const q = parseFloat(String(data[`q_${j}`] || "0").replace(',', '.')) || 0;
+        const s = parseFloat(String(data[`s_${j}`] || "0").replace(',', '.')) || 0;
 
         // Adjust difference calculation based on optimization direction
         const diffAB = isMax ? (valA - valB) : (valB - valA);
@@ -592,13 +621,14 @@ function updatePairwiseComparison() {
         const prefAB = calculatePref(diffAB, type, p, q, s);
         const prefBA = calculatePref(diffBA, type, p, q, s);
 
+        console.log(`Criterion ${j}: Diff=${diffAB.toFixed(2)}, P=${prefAB.toFixed(4)} (Type=${type}, p=${p}, q=${q})`);
+
         // Determine winner for UI styling
         let statusClass = 'status-equal';
         let statusText = 'Indifference';
         if (prefAB > prefBA) { statusClass = 'status-better'; statusText = 'A is Better'; }
         else if (prefBA > prefAB) { statusClass = 'status-worse'; statusText = 'B is Better'; }
 
-        // Create table row for criteria detail
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${name}</td>

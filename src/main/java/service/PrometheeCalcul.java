@@ -1,6 +1,9 @@
-package model;
+package service;
 
 import java.util.List;
+
+import model.Alternative;
+import model.Criterion;
 
 /**
  * Provides the core computational logic for the PROMETHEE method.
