@@ -58,7 +58,7 @@ public class SessionDAO {
     public void saveSession(Session session) throws SQLException {
         String insertSessionSql = "INSERT INTO session (id, name, created_at) VALUES (?, ?, ?)";
         String insertCriterionSql = "INSERT INTO criterion (id, session_id, name, weight, is_maximize, function_type, param_p, param_q, param_s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        String insertAlternativeSql = "INSERT INTO alternative (id, session_id, name, phi_plus, phi_minus, phi_net) VALUES (?, ?, ?, ?, ?, ?)";
+        String insertAlternativeSql = "INSERT INTO alternative (id, session_id, name) VALUES (?, ?, ?)";
         String insertEvaluationSql = "INSERT INTO evaluation (alternative_id, criterion_id, value) VALUES (?, ?, ?)";
 
         try (Connection conn = getConnection()) {
@@ -123,9 +123,6 @@ public class SessionDAO {
                         pstmtAlt.setString(1, alt.getId());
                         pstmtAlt.setString(2, session.getId());
                         pstmtAlt.setString(3, alt.getName());
-                        pstmtAlt.setDouble(4, alt.getPhiPlus());
-                        pstmtAlt.setDouble(5, alt.getPhiMinus());
-                        pstmtAlt.setDouble(6, alt.getPhiNet());
                         pstmtAlt.executeUpdate();
 
                         // Save Evaluations
@@ -238,9 +235,6 @@ public class SessionDAO {
                 try (ResultSet rsAlt = pstmtAlt.executeQuery()) {
                     while (rsAlt.next()) {
                         Alternative alt = new Alternative(rsAlt.getString("id"), rsAlt.getString("name"));
-                        alt.setPhiPlus(rsAlt.getDouble("phi_plus"));
-                        alt.setPhiMinus(rsAlt.getDouble("phi_minus"));
-                        alt.setPhiNet(rsAlt.getDouble("phi_net"));
                         
                         pstmtEval.setString(1, alt.getId());
                         try (ResultSet rsEval = pstmtEval.executeQuery()) {

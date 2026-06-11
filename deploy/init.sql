@@ -5,7 +5,6 @@ CREATE TABLE session (
 );
 
 CREATE TABLE criterion (
-    id VARCHAR(255) PRIMARY KEY,
     session_id VARCHAR(255) REFERENCES session(id) ON DELETE CASCADE,
     name VARCHAR(255),
     weight DOUBLE PRECISION,
@@ -19,10 +18,7 @@ CREATE TABLE criterion (
 CREATE TABLE alternative (
     id VARCHAR(255) PRIMARY KEY,
     session_id VARCHAR(255) REFERENCES session(id) ON DELETE CASCADE,
-    name VARCHAR(255),
-    phi_plus DOUBLE PRECISION,
-    phi_minus DOUBLE PRECISION,
-    phi_net DOUBLE PRECISION
+    name VARCHAR(255)
 );
 
 CREATE TABLE evaluation (
