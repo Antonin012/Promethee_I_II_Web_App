@@ -129,4 +129,17 @@ public class Criterion {
      * @param preferenceFunction the new preference function
      */
     public void setPreferenceFunction(PreferenceFunction preferenceFunction) { this.preferenceFunction = preferenceFunction; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Criterion criterion = (Criterion) o;
+        return java.util.Objects.equals(id, criterion.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(id);
+    }
 }
