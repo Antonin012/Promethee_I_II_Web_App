@@ -242,7 +242,8 @@ function displayResults(res) {
 
     alts.forEach((item, i) => {
         const r = rows[i]; if (!r) return;
-        const name = ($(`input[name="altName_${i+1}"]`)?.value) || item.name;
+        const nameInput = document.querySelector(`input[name="altName_${i+1}"]`);
+        const name = (nameInput ? nameInput.value : "") || item.name;
         r.cells[0].innerText = name;
         if (hCells[i+1]) hCells[i+1].innerText = name;
         if (mat?.[i]) {
@@ -266,7 +267,8 @@ function updateDropdowns() {
     const vA = a.value, vB = b.value;
     a.innerHTML = ''; b.innerHTML = '';
     for (let i = 1; i <= rowCount; i++) {
-        const name = ($(`input[name="altName_${i}"]`)?.value) || `Alt ${i}`;
+        const nameInput = document.querySelector(`input[name="altName_${i}"]`);
+        const name = (nameInput ? nameInput.value : "") || `Alt ${i}`;
         a.add(new Option(name, i)); b.add(new Option(name, i));
     }
     a.value = (vA && vA <= rowCount) ? vA : 1;
@@ -300,7 +302,8 @@ function updatePairwiseComparison() {
     body.innerHTML = '';
     const data = Object.fromEntries(new FormData($("prometheeForm")).entries());
     for (let j = 1; j <= colCount; j++) {
-        const name = ($(`input[name="critName_${j}"]`)?.value) || `Criterion ${j}`;
+        const nameInput = document.querySelector(`input[name="critName_${j}"]`);
+        const name = (nameInput ? nameInput.value : "") || `Criterion ${j}`;
         const vA = parseFloat(String(data[`val_${a}_${j}`] || "0").replace(',', '.')) || 0;
         const vB = parseFloat(String(data[`val_${b}_${j}`] || "0").replace(',', '.')) || 0;
         const isMax = data[`isMax_${j}`] === "true", type = data[`func_${j}`];
@@ -323,6 +326,20 @@ function updatePairwiseComparison() {
             let r = (eP && eM) ? "A I B (Indifference)" : ((pP && (pM || eM)) || (eP && pM)) ? "A P B (A Preferred to B)" : 
                     (((altB.phiPlus > altA.phiPlus) && (altB.phiMinus < altA.phiMinus || eM)) || (eP && altB.phiMinus < altA.phiMinus)) ? "B P A (B Preferred to A)" : "A R B (Incomparability)";
             rel.innerText = "Global Relation: " + r;
+            
+            // Populate footer with flows
+            const foot = $("comparisonFooter");
+            console.log("Rendering footer for", a, "and", b, "Element found:", !!foot);
+            if (foot) {
+                foot.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: right;">Global Flows (&#934;+ / &#934;-) :</td>
+                        <td style="color: ${pP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(A) = ${altA.phiPlus.toFixed(4)}<br>&#934;-(A) = ${altA.phiMinus.toFixed(4)}</td>
+                        <td style="color: ${!pP && !eP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(B) = ${altB.phiPlus.toFixed(4)}<br>&#934;-(B) = ${altB.phiMinus.toFixed(4)}</td>
+                        <td></td>
+                    </tr>
+                `;
+            }
         }
     }
 }

@@ -125,6 +125,9 @@
             <tbody id="comparisonBody">
                 <!-- Filled by JS -->
             </tbody>
+            <tfoot id="comparisonFooter" style="background: #eef; font-weight: bold;">
+                <!-- Filled by JS -->
+            </tfoot>
         </table>
         <div id="prometheeIRelation" class="relation-result"></div>
     </div>
