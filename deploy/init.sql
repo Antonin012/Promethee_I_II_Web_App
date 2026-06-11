@@ -5,6 +5,7 @@ CREATE TABLE session (
 );
 
 CREATE TABLE criterion (
+    id VARCHAR(255) PRIMARY KEY,
     session_id VARCHAR(255) REFERENCES session(id) ON DELETE CASCADE,
     name VARCHAR(255),
     weight DOUBLE PRECISION,
