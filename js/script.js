@@ -169,7 +169,7 @@ function addAlternative() {
 
     const f = $("resFooter");
     const ftd = document.createElement("td"); ftd.className = "res-phi-minus"; ftd.innerText = "-";
-    f.insertBefore(FTD, f.lastElementChild);
+    f.insertBefore(ftd, f.lastElementChild);
 
     updateButtons(); updateDropdowns();
 }
@@ -190,7 +190,6 @@ function showParams(sel, id) {
 function removeAlternative(btn) {
     if (rowCount <= 2) return;
     const row = btn.closest("tr");
-    if (row !== row.parentNode.lastElementChild) return;
     const idx = Array.from(row.parentNode.children).indexOf(row);
     row.remove();
     const h = $("resHeader"), ci = idx + 1;
@@ -207,7 +206,6 @@ function removeAlternative(btn) {
 function removeCriterion(btn) {
     if (colCount <= 2) return;
     const th = btn.closest("th"), h = th.parentNode;
-    if (th !== h.querySelectorAll("th:not(.add-col-th)")[colCount - 1]) return;
     const idx = Array.from(h.children).indexOf(th);
     th.remove();
     qsa("#prometheeForm tbody tr").forEach(r => r.children[idx]?.remove());
@@ -350,13 +348,32 @@ function loadFromLocalStorage() {
  */
 function applyData(imp) {
     if (!imp?.data) return;
-    while (colCount > 2) { const b = qsa("thead .btn-del"); if (b.length) removeCriterion(b[b.length-1]); else break; }
-    while (rowCount > 2) { const b = qsa("tbody .btn-del"); if (b.length) removeAlternative(b[b.length-1]); else break; }
+    
+    let safetyCounter = 0;
+    while (colCount > 2 && safetyCounter < 50) { 
+        const b = qsa("thead .btn-del"); 
+        if (b.length) removeCriterion(b[b.length-1]); 
+        else break; 
+        safetyCounter++;
+    }
+    
+    safetyCounter = 0;
+    while (rowCount > 2 && safetyCounter < 50) { 
+        const b = qsa("tbody .btn-del"); 
+        if (b.length) removeAlternative(b[b.length-1]); 
+        else break; 
+        safetyCounter++;
+    }
+
     while (colCount < imp.colCount) addCriterion();
     while (rowCount < imp.rowCount) addAlternative();
+    
     const f = $("prometheeForm");
     Object.entries(imp.data).forEach(([k, v]) => {
-        if (f.elements[k]) { f.elements[k].value = v; if (f.elements[k].tagName === 'SELECT' && k.startsWith('func_')) showParams(f.elements[k], k.split('_')[1]); }
+        if (f.elements[k]) { 
+            f.elements[k].value = v; 
+            if (f.elements[k].tagName === 'SELECT' && k.startsWith('func_')) showParams(f.elements[k], k.split('_')[1]); 
+        }
     });
     updateDropdowns(); sendData();
 }
