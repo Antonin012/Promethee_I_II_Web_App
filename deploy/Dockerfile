@@ -11,7 +11,6 @@ FROM tomcat:10.1-jdk17
 
 RUN rm -rf /usr/local/tomcat/webapps/*
 
-# Cela permet d'accéder à l'application via http://localhost:8080/ au lieu de /app
 COPY --from=build /app/target/app.war /usr/local/tomcat/webapps/ROOT.war
 
 EXPOSE 8080
