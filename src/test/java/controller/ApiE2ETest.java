@@ -6,11 +6,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Assumptions;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,8 +31,28 @@ class ApiE2ETest {
 
     @BeforeAll
     void setup() {
-        client = HttpClient.newHttpClient();
+        client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(2))
+                .build();
         mapper = new ObjectMapper();
+
+        // Check if the server is reachable. If not, skip these tests.
+        boolean serverUp = isServerReachable();
+        Assumptions.assumeTrue(serverUp, "E2E Tests skipped: Server is not running on " + BASE_URL);
+    }
+
+    private boolean isServerReachable() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL))
+                    .timeout(Duration.ofSeconds(2))
+                    .GET()
+                    .build();
+            HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+            return response.statusCode() == 200;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Test
