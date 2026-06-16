@@ -323,8 +323,7 @@ function updatePairwiseComparison() {
         if (altA && altB) {
             const pP = altA.phiPlus > altB.phiPlus, pM = altA.phiMinus < altB.phiMinus;
             const eP = Math.abs(altA.phiPlus - altB.phiPlus) < 0.0001, eM = Math.abs(altA.phiMinus - altB.phiMinus) < 0.0001;
-            let r = (eP && eM) ? "A I B (Indifference)" : ((pP && (pM || eM)) || (eP && pM)) ? "A P B (A Preferred to B)" : 
-                    (((altB.phiPlus > altA.phiPlus) && (altB.phiMinus < altA.phiMinus || eM)) || (eP && altB.phiMinus < altA.phiMinus)) ? "B P A (B Preferred to A)" : "A R B (Incomparability)";
+            let r = (eP && eM) ? "A I B (Indifference)" : ((pP && (pM || eM)) || (eP && pM)) ? "A P B (A Preferred to B)" : (((altB.phiPlus > altA.phiPlus) && (altB.phiMinus < altA.phiMinus || eM)) || (eP && altB.phiMinus < altA.phiMinus)) ? "B P A (B Preferred to A)" : "A R B (Incomparability)";
             rel.innerText = "Global Relation: " + r;
             
             // Populate footer with flows

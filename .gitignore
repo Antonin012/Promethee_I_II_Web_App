@@ -5,6 +5,7 @@ target/
 WEB-INF/classes/**/*.class
 WEB-INF/lib/*.jar
 doc/rapport.*
+doc/note.md
 .idea/
 .vscode/
 .settings/
