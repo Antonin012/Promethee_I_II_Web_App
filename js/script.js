@@ -297,7 +297,7 @@ function calculatePref(d, type, p, q, s) {
  * UI: Render PROMETHEE I pairwise table and global relation
  */
 function updatePairwiseComparison() {
-    const a = $("compA")?.value, b = $("compB")?.value, body = $("comparisonBody"), rel = $("prometheeIRelation");
+    const a = $("compA")?.value, b = $("compB")?.value, body = $("comparisonBody");
     if (!body || !a || !b) return;
     body.innerHTML = '';
     const data = Object.fromEntries(new FormData($("prometheeForm")).entries());
@@ -323,19 +323,38 @@ function updatePairwiseComparison() {
         if (altA && altB) {
             const pP = altA.phiPlus > altB.phiPlus, pM = altA.phiMinus < altB.phiMinus;
             const eP = Math.abs(altA.phiPlus - altB.phiPlus) < 0.0001, eM = Math.abs(altA.phiMinus - altB.phiMinus) < 0.0001;
-            let r = (eP && eM) ? "A I B (Indifference)" : ((pP && (pM || eM)) || (eP && pM)) ? "A P B (A Preferred to B)" : (((altB.phiPlus > altA.phiPlus) && (altB.phiMinus < altA.phiMinus || eM)) || (eP && altB.phiMinus < altA.phiMinus)) ? "B P A (B Preferred to A)" : "A R B (Incomparability)";
-            rel.innerText = "Global Relation: " + r;
-            
-            // Populate footer with flows
+
+            let relation = "";
+            let relColor = "";
+
+            if (eP && eM) { 
+                relation = "A I B (Indifference)";
+            } else if ((pP && (pM || eM)) || (eP && pM)) { 
+                relation = "A P B (A Preferred to B)"; 
+            } else if (((altB.phiPlus > altA.phiPlus) && (altB.phiMinus < altA.phiMinus || eM)) || (eP && altB.phiMinus < altA.phiMinus)) { 
+                relation = "B P A (B Preferred to A)";
+            } else { 
+                relation = "A R B (Incomparability)";
+            }
+
             const foot = $("comparisonFooter");
-            console.log("Rendering footer for", a, "and", b, "Element found:", !!foot);
             if (foot) {
                 foot.innerHTML = `
+                    <tr style="border-top: 2px solid #ccc;">
+                        <td colspan="3" style="text-align: right; background: #f8f9fa;">Outgoing Flow (&#934;+) :</td>
+                        <td style="color: ${pP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(A) = ${altA.phiPlus.toFixed(4)}</td>
+                        <td style="color: ${!pP && !eP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(B) = ${altB.phiPlus.toFixed(4)}</td>
+                        <td style="background: #f8f9fa; text-align: center;">${pP ? '&#934;+(A) > &#934;+(B)' : (eP ? '&#934;+(A) = &#934;+(B)' : '&#934;+(B) > &#934;+(A)')}</td>
+                    </tr>
                     <tr>
-                        <td colspan="3" style="text-align: right;">Global Flows (&#934;+ / &#934;-) :</td>
-                        <td style="color: ${pP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(A) = ${altA.phiPlus.toFixed(4)}<br>&#934;-(A) = ${altA.phiMinus.toFixed(4)}</td>
-                        <td style="color: ${!pP && !eP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(B) = ${altB.phiPlus.toFixed(4)}<br>&#934;-(B) = ${altB.phiMinus.toFixed(4)}</td>
-                        <td></td>
+                        <td colspan="3" style="text-align: right; background: #f8f9fa;">Incoming Flow (&#934;-) :</td>
+                        <td style="color: ${pM ? '#155724' : (eM ? 'black' : '#721c24')}">&#934;-(A) = ${altA.phiMinus.toFixed(4)}</td>
+                        <td style="color: ${!pM && !eM ? '#155724' : (eM ? 'black' : '#721c24')}">&#934;-(B) = ${altB.phiMinus.toFixed(4)}</td>
+                        <td style="background: #f8f9fa; text-align: center;">${pM ? '&#934;-(A) < &#934;-(B)' : (eM ? '&#934;-(A) = &#934;-(B)' : '&#934;-(B) < &#934;-(A)')}</td>
+                    </tr>
+                    <tr style="font-weight: bold;">
+                        <td colspan="3" style="text-align: right;">PROMETHEE I CONCLUSION :</td>
+                        <td colspan="3" style="text-align: center; font-size: 1.1em;">${relation}</td>
                     </tr>
                 `;
             }
