@@ -131,6 +131,26 @@
         </table>
     </div>
 
+    <div id="promethee1MatrixContainer" class="section-container">
+        <h2>PROMETHEE I Global Relation Matrix</h2>
+        <div style="margin-bottom: 10px; font-size: 0.9em; color: #555;">
+            <strong>Legend:</strong> 
+            <span style="color: #155724; font-weight: bold;">P+</span> (Row Preferred to Column) | 
+            <span style="color: #721c24; font-weight: bold;">P-</span> (Column Preferred to Row) | 
+            <span style="color: #000000; font-weight: bold;">I</span> (Indifference) | 
+            <span style="color: #856404; font-weight: bold;">R</span> (Incomparability)
+        </div>
+        <table id="promethee1MatrixTable">
+            <thead>
+                <tr id="p1MatrixHeader">
+                    <th>Alternatives</th>
+                </tr>
+            </thead>
+            <tbody id="p1MatrixBody">
+            </tbody>
+        </table>
+    </div>
+
     <div id="resultsContainer">
         <h2>Final Results Matrix (PROMETHEE II)</h2>
         <table id="resultsTable">

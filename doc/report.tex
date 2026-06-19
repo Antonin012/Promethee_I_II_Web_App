@@ -47,7 +47,7 @@
 
 % Supervisor Details
 \newcommand{\SupervisorName}{Georgios Bardis}
-\newcommand{\InstitutionName}{University Of West Attika}
+\newcommand{\InstitutionName}{University of West Attica}
 \newcommand{\DepartmentName}{Department of Computer Science}
 \newcommand{\SubmissionYear}{2026}
 
@@ -153,6 +153,26 @@
 \end{titlepage}
 
 %============================================================
+%  ABSTRACT
+%============================================================
+\cleardoublepage
+\chapter*{Abstract}
+This report details the design and implementation of a Web-based Multi-Criteria Decision Analysis (MCDA) application developed during an Erasmus+ internship at the University of West Attica. The primary goal of this project was to provide Decision Makers with a complete, interactive, and user-friendly platform to apply the PROMETHEE I and II methodologies. The application allows users to define alternatives and criteria, select from six distinct preference functions, and dynamically compute partial and complete rankings based on real-time inputs. 
+
+The technical solution relies on a robust three-tier architecture using Jakarta EE Servlets for the backend, Vanilla JavaScript and JSP for a responsive frontend, and PostgreSQL for persistent data storage. The entire system is containerized using Docker to ensure a reproducible deployment environment. To guarantee software reliability, comprehensive testing strategies were implemented, including unit testing for the mathematical engine, integration testing for database interactions, and end-to-end (E2E) testing for the user workflows. This project successfully bridges theoretical decision-making algorithms with modern web engineering practices, resulting in a functional decision support system.
+
+%============================================================
+%  ACKNOWLEDGEMENTS
+%============================================================
+\cleardoublepage
+\chapter*{Acknowledgements}
+I would like to express my deepest gratitude to my supervisor, Mr. Georgios Bardis, for his invaluable guidance, support, and expertise throughout this internship at the University of West Attica. 
+
+I also extend my sincere thanks to the University of West Attica for welcoming me and providing an excellent research and development environment during this Erasmus+ mobility period. 
+
+Finally, I am profoundly grateful to the teaching staff at the Institut Universitaire de Technologie (IUT) of Lille for the solid academic foundation in Computer Science that prepared me for this professional experience.
+
+%============================================================
 %  TABLE OF CONTENTS
 %============================================================
 \cleardoublepage
@@ -183,7 +203,7 @@ I am currently completing my second year of a Bachelor Universitaire de Technolo
 I chose this Erasmus+ mobility to immerse myself in a new academic and professional culture, broaden my international perspective, and improve my technical English proficiency within a research and development environment.
 
 \section{Multi-Criteria Decision Analysis (MCDA)}
-Multi-Criteria Decision Analysis (MCDA) encompasses a collection of methodologies designed to evaluate and select alternatives based on multiple, often conflicting, criteria. These methods are widely employed by organisms and companies for decision support. MCDA methods aim to evaluate alternatives either in an absolute manner (providing a complete ranking) or in a relative manner (identifying strict preference, indifference, or incomparability between specific pairs). Furthermore, some methods allow for grouping alternatives into similarity groups based on shared characteristics.
+Multi-Criteria Decision Analysis (MCDA) encompasses a collection of methodologies designed to evaluate and select alternatives based on multiple, often conflicting, criteria. These methods are widely employed by organizations and companies for decision support. MCDA methods aim to evaluate alternatives either in an absolute manner (providing a complete ranking) or in a relative manner (identifying strict preference, indifference, or incomparability between specific pairs). Furthermore, some methods allow for grouping alternatives into similarity groups based on shared characteristics.
 
 \section{Project Objectives}
 The primary objective of this internship, as defined in the project specification provided by the supervisor, was to design and develop a complete web application implementing both PROMETHEE I and PROMETHEE II methodologies, allowing a Decision Maker to input a performance matrix, define criteria with specific preference functions and weights, and obtain both a partial ranking (PROMETHEE I) and a complete ranking (PROMETHEE II) of the alternatives. The final deliverables include the full application source code, comprehensive documentation, and a working demonstration of the platform.
@@ -274,7 +294,7 @@ The full set of user interactions and functionalities described in this scenario
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{./res/Uml/Usual_Case_Diagram.png}
+  \includegraphics[width=0.85\textwidth]{./res/Uml/Use_Case_Diagram.png}
   \caption{Use Case Diagram: Illustrates the primary interactions a user has with the system, such as managing the matrix and exporting results.}
   \label{fig:usecase}
 \end{figure}
@@ -304,7 +324,7 @@ The entire stack is orchestrated using Docker Compose, which seamlessly networks
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{./res/Uml/Diagram_Deployement.png}
+  \includegraphics[width=0.85\textwidth]{./res/Uml/Deployment_Diagram.png}
   \caption{Deployment Diagram: Shows the physical distribution of the system components.}
   \label{fig:deployment}
 \end{figure}
@@ -333,6 +353,15 @@ To ensure maintainability and scalability, the code follows a strict Model-View-
   \caption{Class Diagram: Internal object-oriented structure of the mathematical model.}
   \label{fig:classdiagram}
 \end{figure}
+
+\section{Testing and Quality Assurance}
+To ensure the reliability and correctness of the application, a comprehensive testing strategy was implemented within the \texttt{src/test} directory. 
+\begin{itemize}
+    \item \textbf{Unit Testing:} The core mathematical engine (\texttt{PrometheeCalcul} and preference functions) is heavily tested to guarantee that the PROMETHEE flows and calculations are strictly accurate.
+    \item \textbf{Integration Testing:} The Data Access Object (DAO) layer and the PostgreSQL database connectivity are validated through integration tests to ensure data persistence and retrieval function correctly.
+    \item \textbf{End-to-End (E2E) Testing:} The complete user workflows, from creating a matrix in the frontend to calculating the results via the backend API, are verified through E2E tests simulating real user interactions.
+\end{itemize}
+This rigorous approach guarantees the robustness of the decision-making platform in a production-like environment.
 
 %------------------------------------------------------------
 \chapter{Discussion}
@@ -388,7 +417,7 @@ Applying PROMETHEE I, Car A and Car C are comparable ($\Phi^+(A) > \Phi^+(C)$ an
 \section{Analysis: Positives and Limitations}
 \textbf{Positives:} The application provides a highly responsive experience through real-time AJAX recalculations. The backend follows SOLID principles and utilizes the DTO pattern for API communication. The application also supports JSON import/export, enabling users to share and reload decision matrices across sessions.
 
-\textbf{Limitations and Future Alternatives:} One observed limitation is that the current frontend architecture does not provide visual feedback when weights do not sum to exactly 1.0 due to floating-point precision issues (e.g., 0.1 + 0.2 + 0.7 = 0.9999... in JavaScript). A rounding mechanism was implemented as a workaround, but a more robust solution would involve server-side weight normalization.
+\textbf{Limitations and Future Alternatives:} One observed limitation is that the current frontend architecture does not provide visual feedback when weights do not sum to exactly 1.0 due to floating-point precision issues (e.g., 0.1 + 0.2 + 0.7 = 0.9999... in JavaScript). A rounding mechanism was implemented as a workaround, but a more robust solution would involve server-side weight normalization using arbitrary-precision data types, such as Java's \texttt{BigDecimal}, to completely eliminate floating-point inaccuracies.
 
 Graphical visualizations such as the GAIA plane \cite{mareschal2013} would allow Decision Makers to better interpret conflicting criteria visually. 
 Furthermore, adding multi-user authentication would transform the tool into a collaborative platform supporting multiple Decision Makers simultaneously.

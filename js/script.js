@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const head = qsa("#resHeader th")[id];
                 if (head) head.innerText = name;
                 updateDropdowns();
+                if (lastResults?.alternatives) updatePromethee1Matrix(lastResults.alternatives);
             }
             updatePairwiseComparison();
             debouncedSendData();
@@ -257,6 +258,8 @@ function displayResults(res) {
         r.cells[r.cells.length-1].innerHTML = `<strong>${sorted.findIndex(s => s.phiNet === item.phiNet) + 1}</strong>`;
         if (fCells[i]) fCells[i].innerText = Number(item.phiMinus).toFixed(4);
     });
+
+    updatePromethee1Matrix(alts);
 }
 
 /**
@@ -360,6 +363,64 @@ function updatePairwiseComparison() {
             }
         }
     }
+}
+
+/**
+ * UI: Render PROMETHEE I Global Matrix
+ */
+function updatePromethee1Matrix(alts) {
+    const h = $("p1MatrixHeader"), body = $("p1MatrixBody");
+    if (!h || !body || !alts) return;
+
+    h.innerHTML = '<th>Alternatives</th>';
+    alts.forEach((alt, i) => {
+        const th = document.createElement('th');
+        const nameInput = document.querySelector(`input[name="altName_${i+1}"]`);
+        th.innerText = (nameInput ? nameInput.value : "") || alt.name;
+        h.appendChild(th);
+    });
+
+    body.innerHTML = '';
+    alts.forEach((altA, i) => {
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td');
+        const nameInput = document.querySelector(`input[name="altName_${i+1}"]`);
+        tdName.innerText = (nameInput ? nameInput.value : "") || altA.name;
+        tdName.style.fontWeight = "bold";
+        tr.appendChild(tdName);
+
+        alts.forEach((altB, j) => {
+            const td = document.createElement('td');
+            td.style.textAlign = "center";
+            td.style.fontWeight = "bold";
+            if (i === j) {
+                td.innerText = '\\';
+            } else {
+                const pP = altA.phiPlus > altB.phiPlus;
+                const pM = altA.phiMinus < altB.phiMinus;
+                const eP = Math.abs(altA.phiPlus - altB.phiPlus) < 0.0001;
+                const eM = Math.abs(altA.phiMinus - altB.phiMinus) < 0.0001;
+
+                let relation = "";
+                if (eP && eM) {
+                    relation = "I";
+                    td.style.color = "#000000"; // Black
+                } else if ((pP && (pM || eM)) || (eP && pM)) {
+                    relation = "P+";
+                    td.style.color = "#155724"; // Green
+                } else if (((altB.phiPlus > altA.phiPlus) && (altB.phiMinus < altA.phiMinus || eM)) || (eP && altB.phiMinus < altA.phiMinus)) {
+                    relation = "P-";
+                    td.style.color = "#721c24"; // Red
+                } else {
+                    relation = "R";
+                    td.style.color = "#856404"; // Yellow/Orange
+                }
+                td.innerText = relation;
+            }
+            tr.appendChild(td);
+        });
+        body.appendChild(tr);
+    });
 }
 
 /**
