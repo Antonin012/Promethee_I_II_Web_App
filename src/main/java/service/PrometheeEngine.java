@@ -11,7 +11,7 @@ import model.Criterion;
  * 
  * @author Developer
  */
-public class PrometheeCalcul {
+public class PrometheeEngine {
 
     /**
      * Calculates the preference degree of a numerical difference using a specific criterion.

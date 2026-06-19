@@ -1,20 +1,20 @@
 package model;
 
 import model.function.*;
-import service.PrometheeCalcul;
+import service.PrometheeEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-class PrometheeCalculTest {
+class PrometheeEngineTest {
 
-    private PrometheeCalcul engine;
+    private PrometheeEngine engine;
 
     @BeforeEach
     void setUp() {
-        engine = new PrometheeCalcul();
+        engine = new PrometheeEngine();
     }
 
     @Test

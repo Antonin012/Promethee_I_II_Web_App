@@ -4,7 +4,7 @@ target/
 # Compilation output
 WEB-INF/classes/**/*.class
 WEB-INF/lib/*.jar
-doc/rapport.*
+doc/report.*
 doc/note.md
 .idea/
 .vscode/

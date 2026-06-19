@@ -19,7 +19,7 @@ import java.util.UUID;
  */
 public class PrometheeService {
 
-    private final PrometheeCalcul calculationEngine = new PrometheeCalcul();
+    private final PrometheeEngine calculationEngine = new PrometheeEngine();
     private final SessionDAO sessionDAO = new SessionDAO();
 
     /**
