@@ -115,10 +115,10 @@
             <thead>
                 <tr>
                     <th>Criterion</th>
-                    <th>Value A</th>
-                    <th>Value B</th>
-                    <th>P(A, B)</th>
-                    <th>P(B, A)</th>
+                    <th id="thValueA">Value A</th>
+                    <th id="thValueB">Value B</th>
+                    <th id="thPrefAB">P(A, B)</th>
+                    <th id="thPrefBA">P(B, A)</th>
                     <th>Status</th>
                 </tr>
             </thead>

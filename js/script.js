@@ -304,6 +304,13 @@ function updatePairwiseComparison() {
     if (!body || !a || !b) return;
     body.innerHTML = '';
     const data = Object.fromEntries(new FormData($("prometheeForm")).entries());
+    const nameA = (document.querySelector(`input[name="altName_${a}"]`)?.value || `Alt ${a}`);
+    const nameB = (document.querySelector(`input[name="altName_${b}"]`)?.value || `Alt ${b}`);
+
+    if ($("thValueA")) $("thValueA").innerText = `Value ${nameA}`;
+    if ($("thValueB")) $("thValueB").innerText = `Value ${nameB}`;
+    if ($("thPrefAB")) $("thPrefAB").innerText = `P(${nameA}, ${nameB})`;
+    if ($("thPrefBA")) $("thPrefBA").innerText = `P(${nameB}, ${nameA})`;
     for (let j = 1; j <= colCount; j++) {
         const nameInput = document.querySelector(`input[name="critName_${j}"]`);
         const name = (nameInput ? nameInput.value : "") || `Criterion ${j}`;
@@ -316,7 +323,7 @@ function updatePairwiseComparison() {
         const dAB = isMax ? (vA - vB) : (vB - vA), dBA = isMax ? (vB - vA) : (vA - vB);
         const pAB = calculatePref(dAB, type, p, q, s), pBA = calculatePref(dBA, type, p, q, s);
         let c = 'status-equal', t = 'Indifference';
-        if (pAB > pBA) { c = 'status-better'; t = 'A Better'; } else if (pBA > pAB) { c = 'status-worse'; t = 'B Better'; }
+        if (pAB > pBA) { c = 'status-better'; t = `${nameA} Better`; } else if (pBA > pAB) { c = 'status-worse'; t = `${nameB} Better`; }
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${name}</td><td>${vA}</td><td>${vB}</td><td>${pAB.toFixed(4)}</td><td>${pBA.toFixed(4)}</td><td class="${c}">${t}</td>`;
         body.appendChild(tr);
@@ -331,13 +338,13 @@ function updatePairwiseComparison() {
             let relColor = "";
 
             if (eP && eM) { 
-                relation = "A I B (Indifference)";
+                relation = `${nameA} I ${nameB} (Indifference)`;
             } else if ((pP && (pM || eM)) || (eP && pM)) { 
-                relation = "A P B (A Preferred to B)"; 
+                relation = `${nameA} P ${nameB} (${nameA} Preferred to ${nameB})`; 
             } else if (((altB.phiPlus > altA.phiPlus) && (altB.phiMinus < altA.phiMinus || eM)) || (eP && altB.phiMinus < altA.phiMinus)) { 
-                relation = "B P A (B Preferred to A)";
+                relation = `${nameB} P ${nameA} (${nameB} Preferred to ${nameA})`;
             } else { 
-                relation = "A R B (Incomparability)";
+                relation = `${nameA} R ${nameB} (Incomparability)`;
             }
 
             const foot = $("comparisonFooter");
@@ -345,15 +352,15 @@ function updatePairwiseComparison() {
                 foot.innerHTML = `
                     <tr style="border-top: 2px solid #ccc;">
                         <td colspan="3" style="text-align: right; background: #f8f9fa;">Outgoing Flow (&#934;+) :</td>
-                        <td style="color: ${pP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(A) = ${altA.phiPlus.toFixed(4)}</td>
-                        <td style="color: ${!pP && !eP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(B) = ${altB.phiPlus.toFixed(4)}</td>
-                        <td style="background: #f8f9fa; text-align: center;">${pP ? '&#934;+(A) > &#934;+(B)' : (eP ? '&#934;+(A) = &#934;+(B)' : '&#934;+(B) > &#934;+(A)')}</td>
+                        <td style="color: ${pP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(${nameA}) = ${altA.phiPlus.toFixed(4)}</td>
+                        <td style="color: ${!pP && !eP ? '#155724' : (eP ? 'black' : '#721c24')}">&#934;+(${nameB}) = ${altB.phiPlus.toFixed(4)}</td>
+                        <td style="background: #f8f9fa; text-align: center;">${pP ? '&#934;+(' + nameA + ') > &#934;+(' + nameB + ')' : (eP ? '&#934;+(' + nameA + ') = &#934;+(' + nameB + ')' : '&#934;+(' + nameB + ') > &#934;+(' + nameA + ')')}</td>
                     </tr>
                     <tr>
                         <td colspan="3" style="text-align: right; background: #f8f9fa;">Incoming Flow (&#934;-) :</td>
-                        <td style="color: ${pM ? '#155724' : (eM ? 'black' : '#721c24')}">&#934;-(A) = ${altA.phiMinus.toFixed(4)}</td>
-                        <td style="color: ${!pM && !eM ? '#155724' : (eM ? 'black' : '#721c24')}">&#934;-(B) = ${altB.phiMinus.toFixed(4)}</td>
-                        <td style="background: #f8f9fa; text-align: center;">${pM ? '&#934;-(A) < &#934;-(B)' : (eM ? '&#934;-(A) = &#934;-(B)' : '&#934;-(B) < &#934;-(A)')}</td>
+                        <td style="color: ${pM ? '#155724' : (eM ? 'black' : '#721c24')}">&#934;-(${nameA}) = ${altA.phiMinus.toFixed(4)}</td>
+                        <td style="color: ${!pM && !eM ? '#155724' : (eM ? 'black' : '#721c24')}">&#934;-(${nameB}) = ${altB.phiMinus.toFixed(4)}</td>
+                        <td style="background: #f8f9fa; text-align: center;">${pM ? '&#934;-(' + nameA + ') < &#934;-(' + nameB + ')' : (eM ? '&#934;-(' + nameA + ') = &#934;-(' + nameB + ')' : '&#934;-(' + nameB + ') < &#934;-(' + nameA + ')')}</td>
                     </tr>
                     <tr style="font-weight: bold;">
                         <td colspan="3" style="text-align: right;">PROMETHEE I CONCLUSION :</td>
