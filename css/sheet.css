@@ -260,3 +260,34 @@ body {
     background-color: #2196F3 !important;
 }
 
+/* Pairwise Comparison and Promethee I Matrix Styles */
+.comparison-footer {
+    font-weight: bold;
+}
+
+.legend-container {
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.legend-p-plus {
+    color: #155724;
+    font-weight: bold;
+}
+
+.legend-p-minus {
+    color: #721c24;
+    font-weight: bold;
+}
+
+.legend-indiff {
+    color: #000000;
+    font-weight: bold;
+}
+
+.legend-incomp {
+    color: #856404;
+    font-weight: bold;
+}
+

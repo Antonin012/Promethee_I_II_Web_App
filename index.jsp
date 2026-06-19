@@ -125,7 +125,7 @@
             <tbody id="comparisonBody">
                 <!-- Filled by JS -->
             </tbody>
-            <tfoot id="comparisonFooter" style="font-weight: bold;">
+            <tfoot id="comparisonFooter" class="comparison-footer">
                 <!-- Filled by JS -->
             </tfoot>
         </table>
@@ -133,12 +133,12 @@
 
     <div id="promethee1MatrixContainer" class="section-container">
         <h2>PROMETHEE I Global Relation Matrix</h2>
-        <div style="margin-bottom: 10px; font-size: 0.9em; color: #555;">
+        <div class="legend-container">
             <strong>Legend:</strong> 
-            <span style="color: #155724; font-weight: bold;">P+</span> (Row Preferred to Column) | 
-            <span style="color: #721c24; font-weight: bold;">P-</span> (Column Preferred to Row) | 
-            <span style="color: #000000; font-weight: bold;">I</span> (Indifference) | 
-            <span style="color: #856404; font-weight: bold;">R</span> (Incomparability)
+            <span class="legend-p-plus">P+</span> (Row Preferred to Column) | 
+            <span class="legend-p-minus">P-</span> (Column Preferred to Row) | 
+            <span class="legend-indiff">I</span> (Indifference) | 
+            <span class="legend-incomp">R</span> (Incomparability)
         </div>
         <table id="promethee1MatrixTable">
             <thead>
