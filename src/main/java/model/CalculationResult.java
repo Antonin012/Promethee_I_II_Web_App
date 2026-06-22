@@ -1,6 +1,5 @@
-package service;
+package model;
 
-import model.Alternative;
 import java.util.List;
 
 /**

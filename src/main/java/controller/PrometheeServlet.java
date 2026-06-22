@@ -8,7 +8,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Alternative;
-import service.CalculationResult;
+import model.CalculationResult;
 
 import java.io.IOException;
 
