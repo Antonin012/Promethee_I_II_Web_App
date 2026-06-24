@@ -2,9 +2,7 @@ package service;
 
 import model.Alternative;
 import model.Criterion;
-import model.function.GaussianFunction;
 import model.function.UsualFunction;
-import model.function.VShapeIndifferences;
 
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +36,7 @@ public class PrometheeBenchmark {
 
             // Generate Criteria
             for (int c = 0; c < criteriaCount; c++) {
-                criteria.add(new Criterion("C" + c, "Criterion " + c, 1.0, true, new VShapeIndifferences(15,30)));
+                criteria.add(new Criterion("C" + c, "Criterion " + c, 1.0, true, new UsualFunction()));
             }
             
             // Generate Alternatives with random values

@@ -414,11 +414,11 @@ function updatePromethee1Matrix(alts) {
                     td.style.color = "#000000"; // Black
                     td.style.backgroundColor = "#9999ff"; // Blue
                 } else if ((pP && (pM || eM)) || (eP && pM)) {
-                    relation = "P+";
+                    relation = "P";
                     td.style.color = "#155724"; // Green
                     td.style.backgroundColor = "#99ff99"; // Green
                 } else if (((altB.phiPlus > altA.phiPlus) && (altB.phiMinus < altA.phiMinus || eM)) || (eP && altB.phiMinus < altA.phiMinus)) {
-                    relation = "P-";
+                    relation = "~P";
                     td.style.color = "#721c24"; // Red
                     td.style.backgroundColor = "#ff9999"; // Red
                 } else {

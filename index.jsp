@@ -135,8 +135,8 @@
         <h2>PROMETHEE I Global Relation Matrix</h2>
         <div class="legend-container">
             <strong>Legend:</strong> 
-            <span class="legend-p-plus">P+</span> (Row Preferred to Column) | 
-            <span class="legend-p-minus">P-</span> (Column Preferred to Row) | 
+            <span class="legend-p-plus">P</span> (Row Preferred to Column) | 
+            <span class="legend-p-minus">~P</span> (Column Preferred to Row) | 
             <span class="legend-indiff">I</span> (Indifference) | 
             <span class="legend-incomp">R</span> (Incomparability)
         </div>
