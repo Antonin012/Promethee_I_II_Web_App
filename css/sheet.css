@@ -291,3 +291,17 @@ body {
     font-weight: bold;
 }
 
+/* ========== GAIA Plane Section ========== */
+
+#gaiaVariance {
+    text-align: center;
+    font-style: italic;
+    color: #666;
+}
+
+.gaia-chart-container {
+    position: relative;
+    width: 80%;
+    max-width: 800px;
+    margin: 0 auto;
+}

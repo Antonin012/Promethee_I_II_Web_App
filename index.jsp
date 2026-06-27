@@ -152,14 +152,6 @@
         </table>
     </div>
 
-    <div id="gaiaSection" class="section-container">
-        <h2>GAIA Plane Visualization</h2>
-        <p id="gaiaVariance" style="text-align: center; font-style: italic; color: #666;"></p>
-        <div style="position: relative; width: 100%; max-width: 800px; margin: 0 auto;">
-            <canvas id="gaiaChart" width="800" height="600"></canvas>
-        </div>
-    </div>
-
     <div id="resultsContainer">
         <h2>Final Results Matrix (PROMETHEE II)</h2>
         <table id="resultsTable">
@@ -199,6 +191,14 @@
         </table>
     </div>
 
+    <div id="gaiaSection" class="section-container">
+        <h2>GAIA Plane Visualization</h2>
+        <p id="gaiaVariance"></p>
+        <div class="gaia-chart-container">
+            <canvas id="gaiaChart" width="800" height="600"></canvas>
+        </div>
+    </div>
+    
     </div> <!-- End main-content -->
 
 </body>
