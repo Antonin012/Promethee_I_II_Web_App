@@ -55,6 +55,11 @@ public class PrometheeServlet extends BaseServlet {
                 }
             }
 
+            // Include GAIA plane data if available
+            if (result.getGaiaData() != null && !result.getGaiaData().isEmpty()) {
+                root.putPOJO("gaia", result.getGaiaData());
+            }
+
             sendJsonResponse(response, root);
 
         } catch (Exception e) {

@@ -164,7 +164,7 @@
 %============================================================
 \cleardoublepage
 \chapter*{Abstract}
-This report details the design and implementation of a Web-based Multi-Criteria Decision Analysis (MCDA) application developed during an Erasmus+ internship at the University of West Attica. The primary goal of this project was to provide Decision Makers with a complete, interactive, and user-friendly platform to apply the PROMETHEE I and II methodologies. The application allows users to define alternatives and criteria, select from six distinct preference functions, and dynamically compute partial and complete rankings based on real-time inputs. 
+This report details the design and implementation of a Web-based Multi-Criteria Decision Analysis (MCDA) application developed during an Erasmus+ internship at the University of West Attica. The primary goal of this project was to provide Decision Makers with a complete, interactive, and user-friendly platform to apply the PROMETHEE I and II methodologies. The application allows users to define alternatives and criteria, select from six distinct preference functions, and dynamically compute partial and complete rankings based on real-time inputs. A complementary GAIA plane visualization, computed via Principal Component Analysis, further allows Decision Makers to graphically interpret conflicting criteria and identify the best compromise alternative.
 
 The technical solution relies on a robust three-tier architecture using Jakarta EE Servlets for the backend, Vanilla JavaScript and JSP for a responsive frontend, and PostgreSQL for persistent data storage. The entire system is containerized using Docker to ensure a reproducible deployment environment. To guarantee software reliability, comprehensive testing strategies were implemented, including unit testing for the mathematical engine, integration testing for database interactions, and end-to-end (E2E) testing for the user workflows. This project successfully bridges theoretical decision-making algorithms with modern web engineering practices, resulting in a functional decision support system.
 
@@ -221,7 +221,7 @@ Multi-Criteria Decision Analysis (MCDA) encompasses a collection of methodologie
 The primary objective of this internship, as defined in the project specification provided by the supervisor, was to design and develop a complete web application implementing both PROMETHEE I and PROMETHEE II methodologies, allowing a Decision Maker to input a performance matrix, define criteria with specific preference functions and weights, and obtain both a partial ranking (PROMETHEE I) and a complete ranking (PROMETHEE II) of the alternatives. The final deliverables include the full application source code, comprehensive documentation, and a working demonstration of the platform.
 
 \section{Report Organization}
-The first chapter of the report contains the introduction and the context of the internship. The second chapter presents the MCDA methods and the theoretical framework of the PROMETHEE algorithm. The third chapter outlines the functional design and use cases of the application. The fourth chapter discusses the technical architecture and implementation choices. The fifth chapter presents an extended usage example and a discussion on the application's strengths. Finally, the sixth chapter concludes the report with a synopsis of the work and future perspectives.
+The first chapter of the report contains the introduction and the context of the internship. The second chapter presents the MCDA methods and the theoretical framework of the PROMETHEE algorithm, complemented by the GAIA visualization method. The third chapter outlines the functional design and use cases of the application. The fourth chapter discusses the technical architecture and implementation choices. The fifth chapter presents an extended usage example and a discussion on the application's strengths. Finally, the sixth chapter concludes the report with a synopsis of the work and future perspectives.
 
 %------------------------------------------------------------
 \chapter{MCDA Methods and Project Subject}
@@ -274,7 +274,21 @@ PROMETHEE I calculates the positive flow $\Phi^+(a)$ (dominance power) and the n
 \begin{equation}
     \Phi(a) = \Phi^+(a) - \Phi^-(a)
 \end{equation}
-The alternative with the highest net flow is ranked first. 
+The alternative with the highest net flow is ranked first.
+
+\subsection{GAIA Plane Visualization}
+The GAIA (Geometrical Analysis for Interactive Aid) plane~\cite{mareschal2013} provides a powerful 2D visualization complementing the PROMETHEE rankings. It is obtained by applying a \textbf{Principal Component Analysis (PCA)} to the matrix of unicriterion net flows $\phi_j(a)$, defined as:
+\begin{equation}
+    \phi_j(a) = \frac{1}{n-1} \sum_{x \neq a} \left[ P_j(a, x) - P_j(x, a) \right]
+\end{equation}
+This produces an $N \times C$ matrix (alternatives $\times$ criteria), which is then projected onto the first two principal components. On the resulting plane:
+\begin{itemize}
+    \item \textbf{Alternatives} are represented as points. Nearby points indicate similar performance profiles.
+    \item \textbf{Criteria} are represented as vectors (arrows) from the origin. An alternative located in the direction of a criterion vector performs well on that criterion.
+    \item \textbf{Criteria agreement:} Two vectors pointing in the same direction indicate correlated criteria; opposite vectors indicate conflicting criteria.
+    \item \textbf{The decision axis $\pi$} (a weighted combination of all criterion vectors) points toward the best compromise according to the assigned weights.
+\end{itemize}
+The percentage of \textbf{variance explained} indicates the quality of the 2D projection: a value above 70--80\% means the plane faithfully represents the decision problem.
 
 %------------------------------------------------------------
 \chapter{Functional Design}
@@ -295,6 +309,7 @@ Key functionalities include:
     \item \textbf{Dynamic Matrix:} Real-time addition/removal of criteria and alternatives.
     \item \textbf{Real-time Calculation:} The results update automatically as soon as the criterion weights sum to 1.0.
     \item \textbf{Pairwise Analysis:} A dedicated section to compare any two alternatives criterion-by-criterion.
+    \item \textbf{GAIA Visualization:} An interactive 2D scatter plot allowing the Decision Maker to visually interpret conflicting criteria and identify the best compromise alternative.
 \end{itemize}
 
 The interface is designed to support both roles identified in MCDA methodology: the \textbf{Decision Maker (DM)}, who inputs evaluations and interprets results, and the \textbf{Decision Analyst (DA)}, who configures the criteria, weights, and preference functions.
@@ -341,7 +356,7 @@ Modify alternatives/parameters dynamically & Live matrix editing & Done \\
 \section{Implementation Choices and Technologies}
 The backend is implemented using \textbf{Jakarta EE Servlets}~\cite{jakartaee}, chosen for its robustness and my strong academic familiarity with the Java ecosystem. \textbf{Apache Tomcat 10.1}~\cite{TomcatDoc} was selected for its open-source nature and widespread industry adoption as a stable Servlet container. For data persistence, \textbf{PostgreSQL}~\cite{PostgreSQLDoc} was preferred over alternatives for its strict ACID compliance and advanced support for relational data. Database connectivity is ensured via the \textbf{PostgreSQL JDBC Driver}, which enables the Jakarta EE application to communicate with the database using standard SQL queries. Finally, \textbf{Docker}~\cite{DockerDoc} was employed to ensure a fully reproducible deployment environment across different machines.
 
-The frontend uses vanilla JavaScript and JavaServer Pages (JSP) to maintain high performance and avoid the overhead of heavy frameworks. To improve the user experience, the application utilizes the browser's \textbf{localStorage} to automatically cache the matrix state during editing.
+The frontend uses vanilla JavaScript and JavaServer Pages (JSP) to maintain high performance and avoid the overhead of heavy frontend frameworks, while still leveraging lightweight, focused libraries such as \textbf{Chart.js} (loaded via CDN) for specific visualization needs such as the interactive GAIA plane. To improve the user experience, the application utilizes the browser's \textbf{localStorage} to automatically cache the matrix state during editing.
 
 \section{System Architecture and Deployment}
 The application follows a classic three-tier architecture, physically distributed across multiple nodes. As detailed in the Deployment Diagram (see Figure \ref{fig:deployment}), the system consists of a client browser, an application server container, and a database container.
@@ -362,7 +377,7 @@ The entire stack is orchestrated using Docker Compose, which seamlessly networks
 \end{figure}
 
 \section{Logical Data Model (MLD)}
-The relational structure of the database was designed to support the PROMETHEE data model, ensuring a clear separation between session metadata, criteria parameters, and raw evaluation scores.
+The relational structure of the database, illustrated in Figure~\ref{fig:mld}, was designed to support the PROMETHEE data model, ensuring a clear separation between session metadata, criteria parameters, and raw evaluation scores.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.85\textwidth]{./res/Uml/MLD_Database.png}
@@ -379,6 +394,8 @@ To ensure maintainability and scalability, the code follows a strict Model-View-
     \item \textbf{DAO:} The \texttt{SessionDAO} handles interaction with the PostgreSQL database using standard JDBC.
     \item \textbf{View:} The presentation layer is centralized in the \texttt{index.jsp} file, which provides the responsive visual structure and dynamically interacts with the controllers via asynchronous JavaScript (AJAX) calls.
 \end{itemize}
+
+The complete object-oriented structure is illustrated in Figure~\ref{fig:classdiagram}, while Figure~\ref{fig:sequence} details the execution flow of a calculation request from the client browser through the MVC layers to the mathematical engine.
 
 \begin{figure}[H]
   \centering
@@ -415,6 +432,18 @@ public void computeFlows(List<Alternative> alternatives, double[][] matrix) {
     }
 }
 \end{lstlisting}
+
+\subsection{GAIA Engine Implementation}
+A dedicated \texttt{GaiaEngine} class implements the PCA computation for the GAIA plane without any external mathematical library. The algorithm performs the following steps:
+\begin{enumerate}
+    \item Builds the unicriterion net flow matrix ($N \times C$) from the raw evaluations.
+    \item Centers the matrix by subtracting column means.
+    \item Computes the covariance matrix ($C \times C$).
+    \item Extracts the two dominant eigenvectors using the \textbf{Power Iteration} method.
+    \item Projects alternatives (as points) and criteria (as vectors) onto the 2D plane.
+    \item Computes the \textbf{decision axis $\pi$} as the weighted projection of criterion vectors.
+\end{enumerate}
+The projected coordinates are serialized as JSON and sent to the frontend, where they are rendered as an interactive scatter plot using the \textbf{Chart.js} library loaded via CDN.
 
 \section{Testing and Quality Assurance}
 To ensure the reliability and correctness of the application, a comprehensive testing strategy was implemented within the \texttt{src/test} directory. 
@@ -467,7 +496,7 @@ Car C & 75 & 8 & 20 \\
 \end{tabular}
 \end{table}
 
-The application generated the following PROMETHEE II results, illustrated in Figure~\ref{fig:ui_results_p2}:
+The application generated the following PROMETHEE II results, illustrated in Figure~\ref{fig:ui_results_p2} and summarized in Table~\ref{tab:exp_results}:
 
 \begin{table}[H]
 \caption{Experiment Results: Calculated Flows}
@@ -503,6 +532,15 @@ Figure~\ref{fig:ui_results_p1} shows the corresponding PROMETHEE I global relati
 The results confirm that Car A is the best overall choice, driven primarily by its competitive price (dominant criterion with w=0.5). Car C ranks second despite its lower price because its significantly longer delivery time (20 days vs 15 for Car A) penalizes it on that criterion. Car B ranks last due to its highest price (90), which is decisively penalized by the V-Shape function with p=10.
 
 Applying PROMETHEE I, Car A and Car C are comparable ($\Phi^+(A) > \Phi^+(C)$ and $\Phi^-(A) < \Phi^-(C)$), confirming Car A's dominance. However, Car A and Car B are also comparable, while Car B and Car C present an interesting case worth examining in the pairwise tool.
+
+The GAIA plane (Figure~\ref{fig:gaia_plane}) provides a complementary visual interpretation of these results. On the plane, Car A is positioned closest to the decision axis $\pi$, confirming it as the best overall compromise. The Price criterion vector and the Delay criterion vector point in divergent directions, visually illustrating the trade-off between cost and delivery time that the Decision Maker must navigate. For this experiment, the projection explains \textbf{100.0\%} of the total variance, confirming that the 2D plane provides a faithful representation of the decision problem.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{./res/application_picture/Gaia_Plane.png}
+  \caption{GAIA Plane: 2D projection of alternatives (points) and criteria (vectors). The red decision axis $\pi$ points toward the best compromise.}
+  \label{fig:gaia_plane}
+\end{figure}
 
 \section{Performance Evaluation}
 To ensure the application meets enterprise standards, two specific benchmarks were conducted: an algorithmic benchmark of the mathematical engine, and a load test of the web API.
@@ -541,7 +579,6 @@ The server successfully processed all requests with zero failures. The applicati
 
 \textbf{Limitations and Future Alternatives:} One observed limitation is that the current frontend architecture does not provide visual feedback when weights do not sum to exactly 1.0 due to floating-point precision issues (e.g., 0.1 + 0.2 + 0.7 = 0.9999... in JavaScript). A rounding mechanism was implemented as a workaround, but a more robust solution would involve server-side weight normalization using arbitrary-precision data types, such as Java's \texttt{BigDecimal}, to completely eliminate floating-point inaccuracies.
 
-Graphical visualizations such as the GAIA plane \cite{mareschal2013} would allow Decision Makers to better interpret conflicting criteria visually. 
 Furthermore, adding multi-user authentication would transform the tool into a collaborative platform supporting multiple Decision Makers simultaneously.
 
 \subsection{Theoretical Limitations of PROMETHEE} Beyond implementation choices, the PROMETHEE method itself presents known theoretical limitations. The \textbf{rank reversal} phenomenon can occur when adding or removing an alternative from the set, potentially altering the relative ranking of unrelated alternatives~\cite{mareschal2013}. Additionally, the choice of preference function parameters ($p$, $q$, $s$) remains subjective and can significantly influence the final ranking, requiring careful sensitivity analysis by the Decision Analyst.
@@ -551,14 +588,13 @@ Furthermore, adding multi-user authentication would transform the tool into a co
 %------------------------------------------------------------
 
 \section{Synopsis of Work}
-This project delivered a fully functional, containerized web application implementing the PROMETHEE I and II multi-criteria decision analysis methods. The platform provides a dynamic interface for defining complex decision problems, evaluating alternatives through six distinct preference functions, and persistently storing results in a relational PostgreSQL database. The entire stack is containerized with Docker, ensuring reproducible deployment. The backend follows SOLID principles through a strict MVC architecture with a dedicated Service layer and DAO pattern.
+This project delivered a fully functional, containerized web application implementing the PROMETHEE I and II multi-criteria decision analysis methods. The platform provides a dynamic interface for defining complex decision problems, evaluating alternatives through six distinct preference functions, visualizing trade-offs via a custom-built GAIA plane, and persistently storing results in a relational PostgreSQL database. The entire stack is containerized with Docker, ensuring reproducible deployment. The backend follows SOLID principles through a strict MVC architecture with a dedicated Service layer and DAO pattern.
 
 \section{Suggestions for Improvement}
-Future iterations should focus on four axes: 
+Future iterations should focus on three axes: 
 (1) modernizing the frontend architecture for better state management; 
-(2) adding the GAIA plane visualization \cite{mareschal2013} for richer result interpretation; 
-(3) implementing user authentication for multi-user support; and
-(4) adding server-side weight normalization to eliminate floating-point precision issues.
+(2) implementing user authentication for multi-user support; and
+(3) adding server-side weight normalization to eliminate floating-point precision issues.
 
 \section{Personal Impressions}
 Working with Jakarta EE Servlets deepened my understanding of the HTTP request-response lifecycle and stateless API design. Implementing the six preference functions required carefully translating mathematical specifications into robust, tested Java code --- a level of rigor I had not previously exercised. Designing the Docker Compose orchestration also introduced me to professional deployment practices. The Erasmus+ context further challenged me to communicate all technical concepts in English daily, which significantly improved my professional fluency and adaptability in an international environment.
@@ -577,6 +613,8 @@ I estimate that approximately \textbf{40\%} of the code (mainly structural boile
     \item[DM (Decision Maker)] The person who needs to choose between alternatives and expresses preferences.
     \item[DA (Decision Analyst)] The expert guiding the DM through the application of an MCDA method.
     \item[MCDA] Multi-Criteria Decision Analysis, a sub-discipline of operations research that evaluates multiple conflicting criteria in decision making.
+    \item[GAIA Plane] Geometrical Analysis for Interactive Aid --- a 2D visualization obtained by PCA on the unicriterion flow matrix.
+    \item[PCA] Principal Component Analysis --- a dimensionality reduction technique that projects high-dimensional data onto a lower-dimensional plane while preserving maximum variance.
     \item[Alternative] A potential choice or option evaluated in the decision-making process.
     \item[Criterion] An attribute or characteristic used to evaluate and compare alternatives.
     \item[Preference Function] A mathematical function used to transform the difference between two evaluations into a preference degree between 0 and 1.

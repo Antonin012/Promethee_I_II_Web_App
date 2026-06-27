@@ -20,10 +20,11 @@ import java.util.UUID;
 public class PrometheeService {
 
     private final PrometheeEngine calculationEngine = new PrometheeEngine();
+    private final GaiaEngine gaiaEngine = new GaiaEngine();
     private final SessionDAO sessionDAO = new SessionDAO();
 
     /**
-     * Orchestrates the full PROMETHEE II calculation and returns the full result (flows + matrix).
+     * Orchestrates the full PROMETHEE II calculation and GAIA plane projection.
      */
     public CalculationResult processFullCalculation(JsonNode node) {
         ArrayList<Criterion> criteria = extractCriteria(node);
@@ -33,7 +34,15 @@ public class PrometheeService {
         if (alternatives.size() >= 2) {
             matrix = calculationEngine.calculate(alternatives, criteria);
         }
-        return new CalculationResult(alternatives, matrix);
+
+        CalculationResult result = new CalculationResult(alternatives, matrix);
+
+        // Compute GAIA plane if we have enough data (at least 2 alternatives and 2 criteria)
+        if (alternatives.size() >= 2 && criteria.size() >= 2) {
+            result.setGaiaData(gaiaEngine.computeGaia(alternatives, criteria));
+        }
+
+        return result;
     }
 
     /**

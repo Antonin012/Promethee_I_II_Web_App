@@ -4,7 +4,7 @@ target/
 # Compilation output
 WEB-INF/classes/**/*.class
 WEB-INF/lib/*.jar
-doc/report.*
+doc/report.pdf
 doc/note.md
 doc/res/picture
 .idea/

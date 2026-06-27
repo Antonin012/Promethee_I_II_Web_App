@@ -4,6 +4,7 @@
 <head>
     <title>Promethée Application</title>
     <link rel="stylesheet" href="./css/sheet.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="./js/script.js" defer></script>
 </head>
 <body>
@@ -149,6 +150,14 @@
             <tbody id="p1MatrixBody">
             </tbody>
         </table>
+    </div>
+
+    <div id="gaiaSection" class="section-container">
+        <h2>GAIA Plane Visualization</h2>
+        <p id="gaiaVariance" style="text-align: center; font-style: italic; color: #666;"></p>
+        <div style="position: relative; width: 100%; max-width: 800px; margin: 0 auto;">
+            <canvas id="gaiaChart" width="800" height="600"></canvas>
+        </div>
     </div>
 
     <div id="resultsContainer">

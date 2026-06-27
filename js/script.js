@@ -3,7 +3,7 @@
  * Handles dynamic UI, local persistence, and API communication.
  */
 
-let colCount = 3, rowCount = 3, debounceTimer, lastResults = null, sidebarOpen = false;
+let colCount = 3, rowCount = 3, debounceTimer, lastResults = null, sidebarOpen = false, gaiaChartInstance = null;
 
 // Selection helpers
 const $ = id => document.getElementById(id);
@@ -260,6 +260,9 @@ function displayResults(res) {
     });
 
     updatePromethee1Matrix(alts);
+
+    // Render GAIA plane if data is available
+    if (res.gaia) renderGaiaPlane(res.gaia);
 }
 
 /**
@@ -508,4 +511,145 @@ function importData(e) {
     const f = e.target.files[0]; if (!f) return;
     const r = new FileReader(); r.onload = (ev) => { try { applyData(JSON.parse(ev.target.result)); alert("Imported!"); } catch (err) { alert("Error: " + err.message); } };
     r.readAsText(f); e.target.value = '';
+}
+
+/**
+ * GAIA: Render the GAIA plane using Chart.js
+ * Displays alternatives as points, criteria as vectors, and the decision axis.
+ */
+function renderGaiaPlane(gaia) {
+    const canvas = $("gaiaChart");
+    if (!canvas || !gaia?.alternatives || !gaia?.criteria) return;
+
+    // Update variance explanation text
+    const varEl = $("gaiaVariance");
+    if (varEl) varEl.innerText = `Quality of the projection: ${gaia.varianceExplained}% of the information is preserved on this 2D plane.`;
+
+    // Destroy previous chart instance if it exists
+    if (gaiaChartInstance) {
+        gaiaChartInstance.destroy();
+        gaiaChartInstance = null;
+    }
+
+    // Alternative colors palette
+    const altColors = ['#2196F3', '#FF9800', '#9C27B0', '#00BCD4', '#E91E63', '#8BC34A', '#FF5722', '#607D8B', '#3F51B5', '#795548'];
+
+    // Criterion colors palette
+    const critColors = ['#4CAF50', '#009688', '#66BB6A', '#26A69A', '#81C784', '#2E7D32', '#43A047', '#1B5E20', '#388E3C', '#A5D6A7'];
+
+    // Build datasets
+    const datasets = [];
+
+    // 1. Alternatives as scatter points
+    gaia.alternatives.forEach((alt, i) => {
+        datasets.push({
+            label: alt.name,
+            data: [{ x: alt.x, y: alt.y }],
+            backgroundColor: altColors[i % altColors.length],
+            borderColor: altColors[i % altColors.length],
+            pointRadius: 8,
+            pointHoverRadius: 11,
+            pointStyle: 'circle',
+            type: 'scatter',
+            order: 1
+        });
+    });
+
+    // 2. Criteria as vector lines from origin
+    gaia.criteria.forEach((crit, i) => {
+        datasets.push({
+            label: '↗ ' + crit.name,
+            data: [{ x: 0, y: 0 }, { x: crit.x, y: crit.y }],
+            borderColor: critColors[i % critColors.length],
+            backgroundColor: critColors[i % critColors.length],
+            borderWidth: 2,
+            borderDash: [6, 3],
+            pointRadius: [0, 5],
+            pointStyle: ['circle', 'triangle'],
+            pointRotation: [0, Math.atan2(crit.y, crit.x) * (180 / Math.PI) + 90],
+            type: 'scatter',
+            showLine: true,
+            order: 2
+        });
+    });
+
+    // 3. Decision axis (pi vector) — scaled up for visibility
+    const pi = gaia.decisionAxis;
+    if (pi) {
+        const piScale = 1.5;
+        datasets.push({
+            label: 'Decision Axis (π)',
+            data: [{ x: -pi.x * piScale, y: -pi.y * piScale }, { x: pi.x * piScale, y: pi.y * piScale }],
+            borderColor: '#f44336',
+            backgroundColor: '#f44336',
+            borderWidth: 3,
+            pointRadius: [0, 7],
+            pointStyle: ['circle', 'triangle'],
+            pointRotation: [0, Math.atan2(pi.y, pi.x) * (180 / Math.PI) + 90],
+            type: 'scatter',
+            showLine: true,
+            order: 0
+        });
+    }
+
+    // Compute axis bounds
+    let maxVal = 0.5;
+    gaia.alternatives.forEach(a => { maxVal = Math.max(maxVal, Math.abs(a.x), Math.abs(a.y)); });
+    gaia.criteria.forEach(c => { maxVal = Math.max(maxVal, Math.abs(c.x), Math.abs(c.y)); });
+    if (pi) { maxVal = Math.max(maxVal, Math.abs(pi.x) * 1.5, Math.abs(pi.y) * 1.5); }
+    maxVal = Math.ceil(maxVal * 1.3 * 10) / 10;
+
+    gaiaChartInstance = new Chart(canvas, {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { font: { size: 11 }, usePointStyle: true, padding: 15 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return `${ctx.dataset.label}: (${ctx.parsed.x.toFixed(3)}, ${ctx.parsed.y.toFixed(3)})`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Principal Component 1', font: { size: 13, weight: 'bold' } },
+                    min: -maxVal, max: maxVal,
+                    grid: { color: '#e0e0e0' },
+                    ticks: { stepSize: Math.round(maxVal / 3 * 10) / 10 }
+                },
+                y: {
+                    title: { display: true, text: 'Principal Component 2', font: { size: 13, weight: 'bold' } },
+                    min: -maxVal, max: maxVal,
+                    grid: { color: '#e0e0e0' },
+                    ticks: { stepSize: Math.round(maxVal / 3 * 10) / 10 }
+                }
+            }
+        },
+        plugins: [{
+            // Custom plugin: draw crosshair axes at origin
+            id: 'crosshair',
+            beforeDraw(chart) {
+                const { ctx, chartArea: { left, right, top, bottom }, scales: { x, y } } = chart;
+                const zeroX = x.getPixelForValue(0);
+                const zeroY = y.getPixelForValue(0);
+                ctx.save();
+                ctx.strokeStyle = '#999';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                // Vertical line at x=0
+                ctx.beginPath(); ctx.moveTo(zeroX, top); ctx.lineTo(zeroX, bottom); ctx.stroke();
+                // Horizontal line at y=0
+                ctx.beginPath(); ctx.moveTo(left, zeroY); ctx.lineTo(right, zeroY); ctx.stroke();
+                ctx.restore();
+            }
+        }]
+    });
 }
