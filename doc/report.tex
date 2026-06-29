@@ -46,10 +46,14 @@
 \newcommand{\StudentEmail}{antoninmarouze@gmail.com}
 
 % Supervisor Details
-\newcommand{\SupervisorName}{Georgios Bardis}
+\newcommand{\SupervisorName}{G. Bardis}
+\newcommand{\SupervisorTitle}{Assoc. Professor} 
 \newcommand{\InstitutionName}{University of West Attica}
-\newcommand{\DepartmentName}{Department of Computer Science}
+\newcommand{\DepartmentName}{Dept. of Informatics and Computer Engineering}
 \newcommand{\SubmissionYear}{2026}
+
+% French Tutor Details
+\newcommand{\FrenchTutorName}{Patricia Evraere}
 
 %------------------------------------------------------------
 % COLOURS
@@ -139,21 +143,27 @@
 %============================================================
 \begin{titlepage}
     \begin{center}
-        \vspace*{2cm}
-        
+        \vspace*{0.5cm}
+                
         {\Huge \bfseries \textcolor{tablehead}{\ProjectTitle}}\\[1.5cm]
         
         {\large \textit{A Project Report submitted for the degree of}}\\[0.5cm]
-        {\Large \bfseries \DegreeProgram}\\[2cm]
+        {\Large \bfseries \DegreeProgram}\\[1.5cm]
         
         {\large \textit{Prepared by}}\\[0.5cm]
-        {\Large \bfseries \StudentName}\\[2cm]
+        {\Large \bfseries \StudentName}\\[1.5cm]
         
         {\large \textit{Under the supervision of}}\\[0.5cm]
-        {\Large \bfseries \SupervisorName}\\[2.5cm]
+        {\Large \bfseries \SupervisorName, \SupervisorTitle}\\[1cm]
+        
+        {\large \textit{Followed in France by}}\\[0.5cm]
+        {\Large \bfseries \FrenchTutorName}\\[1.5cm]
         
         {\Large \bfseries \DepartmentName}\\[0.5cm]
         {\Large \bfseries \InstitutionName}\\[1cm]
+
+        \includegraphics[width=4.5cm]{./res/picture/uni_logo.png}\\[1cm]
+
         {\large \SubmissionYear}
         
     \end{center}
@@ -295,12 +305,19 @@ The percentage of \textbf{variance explained} indicates the quality of the 2D pr
 %------------------------------------------------------------
 
 \section{User Interface and Features}
-The application provides a dynamic web interface allowing users to define decision problems without technical expertise. The layout is divided into a data entry matrix, a pairwise comparison tool, and a final results table, as shown in Figure~\ref{fig:ui_matrix}.
+The application provides a dynamic web interface allowing users to define decision problems without technical expertise. The development process started with the design of an initial wireframe mockup (Figure~\ref{fig:ui_mockup}) to establish the core user experience before implementation. The layout is divided into a data entry matrix, a pairwise comparison tool, and a final results table. The final implemented interface is shown in Figure~\ref{fig:ui_matrix}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{./res/application_picture/Model_app.png}
+  \caption{Initial Wireframe Mockup: Early design of the application's layout and data entry matrix.}
+  \label{fig:ui_mockup}
+\end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.95\textwidth]{./res/application_picture/Matrix_alternative_criteria.png}
-  \caption{Data Entry Interface: Users can dynamically add criteria and alternatives, choosing weights and preference functions through simple dropdowns and inputs.}
+  \caption{Final Data Entry Interface: Users can dynamically add criteria and alternatives, choosing weights and preference functions through simple dropdowns and inputs.}
   \label{fig:ui_matrix}
 \end{figure}
 

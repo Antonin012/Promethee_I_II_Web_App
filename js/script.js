@@ -566,7 +566,9 @@ function renderGaiaPlane(gaia) {
             borderDash: [6, 3],
             pointRadius: [0, 5],
             pointStyle: ['circle', 'triangle'],
-            pointRotation: [0, Math.atan2(crit.y, crit.x) * (180 / Math.PI) + 90],
+            // Chart.js: rotation=0° = pointing north. Clockwise from north.
+            // Correct formula: atan2(x, y) where y is the math Y (not canvas Y)
+            pointRotation: [0, Math.atan2(crit.x, crit.y) * (180 / Math.PI)],
             type: 'scatter',
             showLine: true,
             order: 2
@@ -585,7 +587,8 @@ function renderGaiaPlane(gaia) {
             borderWidth: 3,
             pointRadius: [0, 7],
             pointStyle: ['circle', 'triangle'],
-            pointRotation: [0, Math.atan2(pi.y, pi.x) * (180 / Math.PI) + 90],
+            // Same correct formula for decision axis
+            pointRotation: [0, Math.atan2(pi.x, pi.y) * (180 / Math.PI)],
             type: 'scatter',
             showLine: true,
             order: 0
